@@ -58,7 +58,7 @@ local function popOutPet(pet, boxCFrame, displayLocation)
     petPrimary.CFrame = boxCFrame * CFrame.new(0, 3, 0)
 
     -- Flip 180° on X-axis for pop-out
-    petPrimary.CFrame = petPrimary.CFrame * CFrame.Angles(math.rad(180), 0, 0)
+    petPrimary.CFrame = petPrimary.CFrame * CFrame.Angles(math.rad(180), 0, math.rad(180))
 
     -- Float up 2 studs
     local floatTween = TweenService:Create(
@@ -128,6 +128,39 @@ local function selectWeightedPet()
 	return next(availablePets)
 end
 
+-- Function to fade a part or model and its decals/textures
+local function fadePartOrModel(partOrModel, targetTransparency, tweenTime)
+    local tweenInfo = TweenInfo.new(tweenTime or 0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+
+    -- Tween the part itself
+    local tweenProps = TweenService:Create(partOrModel, tweenInfo, {Transparency = targetTransparency})
+    tweenProps:Play()
+
+    -- If it’s a model, also tween all BaseParts inside
+    if partOrModel:IsA("Model") then
+        for _, v in pairs(partOrModel:GetDescendants()) do
+            if v:IsA("BasePart") then
+                -- Tween the part itself
+                TweenService:Create(v, tweenInfo, {Transparency = targetTransparency}):Play()
+                -- Tween any decals/textures on the part
+                for _, decal in pairs(v:GetDescendants()) do
+                    if decal:IsA("Decal") or decal:IsA("Texture") then
+                        TweenService:Create(decal, tweenInfo, {Transparency = targetTransparency}):Play()
+                    end
+                end
+            end
+        end
+    else
+        -- If it’s a single part, tween its decals/textures
+        for _, decal in pairs(partOrModel:GetDescendants()) do
+            if decal:IsA("Decal") or decal:IsA("Texture") then
+                TweenService:Create(decal, tweenInfo, {Transparency = targetTransparency}):Play()
+            end
+        end
+    end
+
+    tweenProps.Completed:Wait()
+end
 
 ProximityPrompt.Triggered:Connect(function(player)
 
@@ -275,16 +308,21 @@ ProximityPrompt.Triggered:Connect(function(player)
 				{Transparency = 1}
 			)
 
-			fadeOut:Play()
-			fadeOut.Completed:Wait()
-
-			confetti:Emit(200)
-
 			-- ✨ CLONE PET FOR REVEAL
 			local revealPet = selectedPet:Clone()
 			revealPet.Parent = workspace
 
+			-- Spawn the pet above the box immediately
+			confetti:Emit(200)
 			popOutPet(revealPet, boxPart.CFrame, displayLocation)
+			-- 🎬 Fade box out smoothly (decals included)
+			fadePartOrModel(boxPart, 1, 0.4)
+
+			-- Reset box CFrame
+			boxPart.CFrame = og_mystboxloc
+
+			-- 🎬 Fade box back in
+			fadePartOrModel(boxPart, 0, 0.4)
 		end)
 	else
 		print("no more coin :c")
