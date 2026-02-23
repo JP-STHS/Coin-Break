@@ -29,7 +29,62 @@ local availablePets = {
 local mysterybox = workspace:WaitForChild("boxmyst")
 local confetti = workspace.boxmyst:WaitForChild("confettiparticle")
 local og_mystboxloc = mysterybox.CFrame
+-- Function to move a pet (Model / Part / MeshPart) safely
+local function popOutPet(pet, boxCFrame, displayLocation)
+    local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
+    local pivotCFrame
+    local petPrimary -- part we will tween
+
+    if pet:IsA("Model") then
+        -- Make sure PrimaryPart exists
+        if not pet.PrimaryPart then
+            local mainPart = pet:FindFirstChildWhichIsA("BasePart")
+            if mainPart then
+                pet.PrimaryPart = mainPart
+            else
+                warn("No BasePart found for pet:", pet.Name)
+                return
+            end
+        end
+        petPrimary = pet.PrimaryPart
+        pivotCFrame = petPrimary.CFrame
+    else
+        petPrimary = pet
+        pivotCFrame = pet.CFrame
+    end
+
+    -- Spawn above box
+    petPrimary.CFrame = boxCFrame * CFrame.new(0, 3, 0)
+
+    -- Flip 180° on X-axis for pop-out
+    petPrimary.CFrame = petPrimary.CFrame * CFrame.Angles(math.rad(180), 0, 0)
+
+    -- Float up 2 studs
+    local floatTween = TweenService:Create(
+        petPrimary,
+        tweenInfo,
+        {CFrame = petPrimary.CFrame * CFrame.new(0, 2, 0)}
+    )
+    floatTween:Play()
+    floatTween.Completed:Wait()
+    task.wait(0.5)
+
+    -- Move to display location
+    if displayLocation then
+        local targetCFrame = CFrame.new(displayLocation.position) *
+            CFrame.Angles(
+                math.rad(displayLocation.rotation.X),
+                math.rad(displayLocation.rotation.Y),
+                math.rad(displayLocation.rotation.Z)
+            )
+        if pet:IsA("Model") then
+            pet:SetPrimaryPartCFrame(targetCFrame)
+        else
+            pet.CFrame = targetCFrame
+        end
+    end
+end
 -- Pet display positions
 local petLocations = {
 	["sadpet1"] = {position = Vector3.new(49, 4, -46), rotation = Vector3.new(0, -180, 0)},
@@ -229,59 +284,10 @@ ProximityPrompt.Triggered:Connect(function(player)
 			local revealPet = selectedPet:Clone()
 			revealPet.Parent = workspace
 
-			local revealPart = revealPet
-			if revealPet:IsA("Model") then
-				if not revealPet.PrimaryPart then
-					local main = revealPet:FindFirstChildWhichIsA("BasePart")
-					if main then
-						revealPet.PrimaryPart = main
-					end
-				end
-				revealPart = revealPet.PrimaryPart
-			end
-
-			-- Spawn pet instantly above box (no transparency changes)
-			local spawnPosition = boxPart.Position + Vector3.new(0, 3, 0)
-
-			revealPet:PivotTo(
-				CFrame.new(spawnPosition) *
-				CFrame.Angles(math.rad(180), 0, 0)
-			)
-				-- make it spin here maybe?
-			-- 🎬 FLOAT UP EFFECT
-			local floatTween = TweenService:Create(
-				revealPart,
-				TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-				{Position = revealPart.Position + Vector3.new(0, 0.5, 0)}
-			)
-
-			floatTween:Play()
-			floatTween.Completed:Wait()
-
-			task.wait(0.5)
-
-			-- 🚀 TELEPORT TO DISPLAY LOCATION
-			if displayLocation then
-				local newCFrame = CFrame.new(displayLocation.position) *
-					CFrame.Angles(
-						math.rad(displayLocation.rotation.X),
-						math.rad(displayLocation.rotation.Y),
-						math.rad(displayLocation.rotation.Z)
-					)
-
-				if revealPet:IsA("Model") then
-					revealPet:SetPrimaryPartCFrame(newCFrame)
-				else
-					revealPart.CFrame = newCFrame
-				end
-			end
-
-			-- 🔁 Reset box
-			boxPart.CFrame = originalCFrame
-			boxPart.Transparency = 0
-			mysterybox.CFrame = og_mystboxloc
+			popOutPet(revealPet, boxPart.CFrame, displayLocation)
 		end)
 	else
 		print("no more coin :c")
 	end
 end)
+
