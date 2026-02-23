@@ -2,31 +2,35 @@ local TweenService = game:GetService("TweenService")
 
 ProximityPrompt = workspace:WaitForChild("wellhole").ProximityPrompt
 
--- Store available pets (this persists between triggers)
+-- Store available pets with weights (higher weight = more common)
 local availablePets = {
-	workspace:WaitForChild("sadpet1"),
-	workspace:WaitForChild("coolkpet2"),
-	workspace:WaitForChild("jellipet3"),
-	workspace:WaitForChild("epicpet4"),
-	workspace:WaitForChild("schleppet5"),
-	workspace:WaitForChild("cleetuspet6"),
-	workspace:WaitForChild("bytepet7"),
-	workspace:WaitForChild("yokaipet8"),
-	workspace:WaitForChild("toothlesspet9"),
-	workspace:WaitForChild("taikopet10"),
-	workspace:WaitForChild("windowspet11"),
-	workspace:WaitForChild("linuxpet12"),
-	workspace:WaitForChild("partypet13"),
-	workspace:WaitForChild("screechpet14"),
-	workspace:WaitForChild("crinepet15"),
-	workspace:WaitForChild("angrybirdpet16"),
-	workspace:WaitForChild("happet17"),
-	workspace:WaitForChild("ConorChudpet18"),
-	workspace:WaitForChild("ballpet19"),
-	workspace:WaitForChild("finalpet20")
+	[workspace:WaitForChild("sadpet1")] = 0.9,
+	[workspace:WaitForChild("coolkpet2")] = 0.9,
+	[workspace:WaitForChild("jellipet3")] = 0.9,
+	[workspace:WaitForChild("epicpet4")] = 0.9,
+	[workspace:WaitForChild("schleppet5")] = 0.9,
+	[workspace:WaitForChild("cleetuspet6")] = 0.7,
+	[workspace:WaitForChild("bytepet7")] = 0.7,
+	[workspace:WaitForChild("yokaipet8")] = 0.7,
+	[workspace:WaitForChild("toothlesspet9")] = 0.7,
+	[workspace:WaitForChild("taikopet10")] = 0.7,
+	[workspace:WaitForChild("windowspet11")] = 0.3,
+	[workspace:WaitForChild("linuxpet12")] = 0.3,
+	[workspace:WaitForChild("partypet13")] = 0.3,
+	[workspace:WaitForChild("screechpet14")] = 0.3,
+	[workspace:WaitForChild("crinepet15")] = 0.3,
+	[workspace:WaitForChild("angrybirdpet16")] = 0.1,
+	[workspace:WaitForChild("happet17")] = 0.1,
+	[workspace:WaitForChild("ConorChudpet18")] = 0.1,
+	[workspace:WaitForChild("ballpet19")] = 0.1,
+	[workspace:WaitForChild("finalpet20")] = 0.001
 }
 
--- Pet display positions - each pet has its own designated spot
+local mysterybox = workspace:WaitForChild("boxmyst")
+local confetti = workspace.boxmyst:WaitForChild("confettiparticle")
+local og_mystboxloc = mysterybox.CFrame
+
+-- Pet display positions
 local petLocations = {
 	["sadpet1"] = {position = Vector3.new(49, 4, -46), rotation = Vector3.new(0, -180, 0)},
 	["coolkpet2"] = {position = Vector3.new(46, 4, -46), rotation = Vector3.new(0, -180, 0)},
@@ -38,18 +42,37 @@ local petLocations = {
 	["yokaipet8"] = {position = Vector3.new(28.096, 3.992, -46), rotation = Vector3.new(0, 180, 0)},
 	["toothlesspet9"] = {position = Vector3.new(25, 4, -46), rotation = Vector3.new(0, 180, 0)},
 	["taikopet10"] = {position = Vector3.new(22, 4, -46), rotation = Vector3.new(0, 180, 0)},
-	-- Top row
 	["windowspet11"] = {position = Vector3.new(49, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
 	["linuxpet12"] = {position = Vector3.new(46, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
 	["partypet13"] = {position = Vector3.new(43, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
 	["screechpet14"] = {position = Vector3.new(40, 6.999, -51), rotation = Vector3.new(0, -180, 0)},
 	["crinepet15"] = {position = Vector3.new(37, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
-	["angrybirdpet16"] = {position = Vector3.new(31.006, 7.121, -51.046), rotation = Vector3.new(21.344, 179.943, -4.671)},
+	["angrybirdpet16"] = {position = Vector3.new(34.007, 7.17, -50.872), rotation = Vector3.new(-24.736, 176.245, -4.768)},
 	["happet17"] = {position = Vector3.new(31, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
 	["ConorChudpet18"] = {position = Vector3.new(28.096, 8.053, -51), rotation = Vector3.new(0, 87.96, 0)},
 	["ballpet19"] = {position = Vector3.new(25, 6.999, -51), rotation = Vector3.new(0, 0, 0)},
-	["finalpet20"] = {position = Vector3.new(22, 7.634, -51), rotation = Vector3.new(0, 180, 0)}
+	["finalpet20"] = {position = Vector3.new(21.5, 7.634, -51), rotation = Vector3.new(0, 180, 0)}
 }
+
+local function selectWeightedPet()
+	local totalWeight = 0
+	for pet, weight in pairs(availablePets) do
+		totalWeight = totalWeight + weight
+	end
+	
+	local randomValue = math.random() * totalWeight
+	
+	local cumulativeWeight = 0
+	for pet, weight in pairs(availablePets) do
+		cumulativeWeight = cumulativeWeight + weight
+		if randomValue <= cumulativeWeight then
+			return pet
+		end
+	end
+	
+	return next(availablePets)
+end
+
 
 ProximityPrompt.Triggered:Connect(function(player)
 
@@ -58,7 +81,6 @@ ProximityPrompt.Triggered:Connect(function(player)
 	local rootPart = character:WaitForChild("HumanoidRootPart")
 	local effect = workspace:WaitForChild("particleforwell").wind
 	
-	-- Create and load the animation
 	local animation = Instance.new("Animation")
 	animation.AnimationId = "rbxassetid://118615925266637"
 	local anim = humanoid:LoadAnimation(animation)
@@ -67,110 +89,197 @@ ProximityPrompt.Triggered:Connect(function(player)
 	if Tool and Tool.Parent == player.Character then
 		print("u used a coin")
 		
-		-- Check if there are any pets left
-		if #availablePets == 0 then
+		local petsRemaining = 0
+		for _ in pairs(availablePets) do
+			petsRemaining = petsRemaining + 1
+		end
+		
+		if petsRemaining == 0 then
 			print("No more pets available!")
 			return
 		end
 		
-		-- Save original states
 		local prevWalkSpeed = humanoid.WalkSpeed
 		local prevJumpHeight = humanoid.JumpHeight
 		
-		-- Get camera and save its state
 		local camera = workspace.CurrentCamera
 		local prevCameraType = camera.CameraType
 		
-		-- Get the camera parts
 		local camera1 = workspace:WaitForChild("Camera1")
 		local camera2 = workspace:WaitForChild("Camera2")
 		
-		-- Disable movement
 		humanoid.WalkSpeed = 0
 		humanoid.JumpHeight = 0
 		
-		-- Lock the camera
 		camera.CameraType = Enum.CameraType.Scriptable
-		
-		-- CAMERA POSITION 1: Set to first camera part
 		camera.CFrame = camera1.CFrame
 		
-		-- Position and rotate the character
 		rootPart.CFrame = CFrame.new(25, 6.786, -29) * CFrame.Angles(0, math.rad(90), 0)
 		
-		-- ✨ Clone and attach the animated coin
 		local animatedCoin = game.ReplicatedStorage.CoinAnim:Clone()
 		animatedCoin.Parent = character
 
-		-- Find the Motor6D and connect it to RightHand
 		local motor = animatedCoin:FindFirstChildOfClass("Motor6D")
 		if motor then
 			motor.Part0 = character:FindFirstChild("RightHand")
 		end
 
-		-- Play the animation
 		anim:Play()
 		Tool:Destroy()
 		
-		-- CAMERA TWEEN 1: Move to second camera view (when coin drops)
 		task.wait(3)
 		
-		local tweenInfo1 = TweenInfo.new(
-			0.5,
-			Enum.EasingStyle.Quad,
-			Enum.EasingDirection.Out
-		)
+		local tweenInfo1 = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 		local tween1 = TweenService:Create(camera, tweenInfo1, {CFrame = camera2.CFrame})
 		tween1:Play()
 		
-		-- 🎰 ROULETTE: Pick random pet and remove it from the list
-		local randomIndex = math.random(1, #availablePets)
-		local selectedPet = availablePets[randomIndex]
-		
-		-- Remove the selected pet from the available list
-		table.remove(availablePets, randomIndex)
+		local selectedPet = selectWeightedPet()
+		availablePets[selectedPet] = nil
 		
 		print("Selected pet:", selectedPet.Name)
-		print("Pets remaining:", #availablePets)
+		print("Pets remaining:", petsRemaining - 1)
 		
-		-- Get the specific display location for THIS pet
 		local displayLocation = petLocations[selectedPet.Name]
 		
-		if displayLocation then
-			local newCFrame = CFrame.new(displayLocation.position) * 
-							  CFrame.Angles(
-								  math.rad(displayLocation.rotation.X), 
-								  math.rad(displayLocation.rotation.Y), 
-								  math.rad(displayLocation.rotation.Z)
-							  )
-			
-			-- Move the pet based on its type
-			if selectedPet:IsA("Model") then
-				-- For models, use PrimaryPart if available
-				if selectedPet.PrimaryPart then
-					selectedPet:SetPrimaryPartCFrame(newCFrame)
-				else
-					-- If no PrimaryPart, try to find the main part
-					local mainPart = selectedPet:FindFirstChildWhichIsA("BasePart")
-					if mainPart then
-						selectedPet:SetPrimaryPartCFrame(newCFrame)
-					end
-				end
-			elseif selectedPet:IsA("MeshPart") or selectedPet:IsA("Part") or selectedPet:IsA("BasePart") then
-				-- For single parts (including MeshParts)
-				selectedPet.CFrame = newCFrame
-			end
-		else
-			warn("No location found for pet:", selectedPet.Name)
-		end
-		
-		-- Clean up when animation ends
 		anim.Stopped:Connect(function()
 			humanoid.WalkSpeed = prevWalkSpeed
 			humanoid.JumpHeight = prevJumpHeight
 			camera.CameraType = prevCameraType
 			animatedCoin:Destroy()
 			effect:Emit(100)
+			
+			-- Move and play box animation
+			
+			mysterybox.CFrame = CFrame.new(18.697, 6.469, -29.021)
+			-- Move box into position
+			if mysterybox:IsA("Model") then
+				if mysterybox.PrimaryPart then
+					mysterybox:SetPrimaryPartCFrame(CFrame.new(18.697, 6.469, -29.021))
+				else
+					warn("Mystery box model has no PrimaryPart set!")
+					return
+				end
+			else
+				mysterybox.CFrame = CFrame.new(18.697, 6.469, -29.021)
+			end
+
+			local boxPart = mysterybox
+			if mysterybox:IsA("Model") then
+				boxPart = mysterybox.PrimaryPart
+			end
+
+			local originalCFrame = boxPart.CFrame
+
+			-- 🎬 SHAKE EFFECT
+			for i = 1, 10 do
+				local offset = CFrame.new(math.random(-1,1)*0.25, 0, math.random(-1,1)*0.25)
+				boxPart.CFrame = originalCFrame * offset
+				task.wait(0.04)
+			end
+
+			boxPart.CFrame = originalCFrame
+
+			-- 🎬 BOUNCE UP
+			local bounceUp = TweenService:Create(
+				boxPart,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{Position = boxPart.Position + Vector3.new(0, 2, 0)}
+			)
+
+			local bounceDown = TweenService:Create(
+				boxPart,
+				TweenInfo.new(0.4, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out),
+				{Position = originalCFrame.Position}
+			)
+
+			bounceUp:Play()
+			bounceUp.Completed:Wait()
+			bounceDown:Play()
+			bounceDown.Completed:Wait()
+
+			-- 🎬 SPIN
+			local spinTween = TweenService:Create(
+				boxPart,
+				TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{CFrame = originalCFrame * CFrame.Angles(0, math.rad(360), 0)}
+			)
+
+			spinTween:Play()
+			spinTween.Completed:Wait()
+			-- mysterybox.Transparency = 1
+			-- confetti:Emit(200)
+			
+			-- boxPart.CFrame = originalCFrame
+			-- task.wait(1)
+			-- mysterybox.CFrame = og_mystboxloc
+			-- mysterybox.Transparency = 0
+			-- 🎬 Fade box out smoothly
+			local fadeOut = TweenService:Create(
+				boxPart,
+				TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{Transparency = 1}
+			)
+
+			fadeOut:Play()
+			fadeOut.Completed:Wait()
+
+			confetti:Emit(200)
+
+			-- ✨ CLONE PET FOR REVEAL
+			local revealPet = selectedPet:Clone()
+			revealPet.Parent = workspace
+
+			local revealPart = revealPet
+			if revealPet:IsA("Model") then
+				if not revealPet.PrimaryPart then
+					local main = revealPet:FindFirstChildWhichIsA("BasePart")
+					if main then
+						revealPet.PrimaryPart = main
+					end
+				end
+				revealPart = revealPet.PrimaryPart
+			end
+
+			-- Spawn pet instantly above box (no transparency changes)
+			local spawnPosition = boxPart.Position + Vector3.new(0, 3, 0)
+
+			revealPet:PivotTo(
+				CFrame.new(spawnPosition) *
+				CFrame.Angles(math.rad(180), 0, 0)
+			)
+				-- make it spin here maybe?
+			-- 🎬 FLOAT UP EFFECT
+			local floatTween = TweenService:Create(
+				revealPart,
+				TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{Position = revealPart.Position + Vector3.new(0, 0.5, 0)}
+			)
+
+			floatTween:Play()
+			floatTween.Completed:Wait()
+
+			task.wait(0.5)
+
+			-- 🚀 TELEPORT TO DISPLAY LOCATION
+			if displayLocation then
+				local newCFrame = CFrame.new(displayLocation.position) *
+					CFrame.Angles(
+						math.rad(displayLocation.rotation.X),
+						math.rad(displayLocation.rotation.Y),
+						math.rad(displayLocation.rotation.Z)
+					)
+
+				if revealPet:IsA("Model") then
+					revealPet:SetPrimaryPartCFrame(newCFrame)
+				else
+					revealPart.CFrame = newCFrame
+				end
+			end
+
+			-- 🔁 Reset box
+			boxPart.CFrame = originalCFrame
+			boxPart.Transparency = 0
+			mysterybox.CFrame = og_mystboxloc
 		end)
 	else
 		print("no more coin :c")
