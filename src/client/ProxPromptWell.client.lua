@@ -1,3 +1,4 @@
+local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 
 ProximityPrompt = workspace:WaitForChild("wellhole").ProximityPrompt
@@ -25,11 +26,66 @@ local availablePets = {
 	[workspace:WaitForChild("ballpet19")] = 0.1,
 	[workspace:WaitForChild("finalpet20")] = 0.001
 }
-
+local petImages = {
+    ["sadpet1"] = "rbxassetid://117424553745950",
+    ["coolkpet2"] = "rbxassetid://74239884632300",
+	["jellipet3"] = "rbxassetid://91554313926300",
+	["epicpet4"] = "rbxassetid://75782673162601",
+	["schleppet5"] = "rbxassetid://79851485437684",
+	["cleetuspet6"] = "rbxassetid://131817626345866",
+	["bytepet7"] = "rbxassetid://128988683118106",
+	["yokaipet8"] = "rbxassetid://96088495057261",
+	["toothlesspet9"] = "rbxassetid://73037793852239",
+	["taikopet10"] = "rbxassetid://119050067395782",
+	["windowspet11"] = "rbxassetid://112284783769998",
+	["linuxpet12"] = "rbxassetid://94395338632861",
+	["partypet13"] = "rbxassetid://105242273291663",
+	["screechpet14"] = "rbxassetid://71180874056561",
+	["crinepet15"] = "rbxassetid://133880147682370",
+	["angrybirdpet16"] = "rbxassetid://8989817133",
+	["happet17"] = "rbxassetid://93707348604530",
+	["ConorChudpet18"] = "rbxassetid://126422228814757",
+	["ballpet19"] = "rbxassetid://44121271",
+    ["finalpet20"]    = "rbxassetid://17358449907",
+}
 local mysterybox = workspace:WaitForChild("boxmyst")
 local confetti = workspace.boxmyst:WaitForChild("confettiparticle")
 local og_mystboxloc = mysterybox.CFrame
 -- Function to move a pet (Model / Part / MeshPart) safely
+local function playPetAnimation(pet)
+    local controller = pet:FindFirstChildWhichIsA("AnimationController", true)
+    local humanoid = pet:FindFirstChildWhichIsA("Humanoid", true)
+
+    -- If it has a rig, play the real animation
+    if controller or humanoid then
+        local animation = pet:FindFirstChildWhichIsA("Animation", true)
+        if animation then
+            local animator
+            if humanoid then
+                animator = humanoid:FindFirstChildWhichIsA("Animator") or Instance.new("Animator")
+                animator.Parent = humanoid
+            else
+                animator = controller:FindFirstChildWhichIsA("Animator") or Instance.new("Animator")
+                animator.Parent = controller
+            end
+            local track = animator:LoadAnimation(animation)
+            track.Looped = true
+            track:Play()
+            return
+        end
+    end
+
+    -- Fallback for single parts: looping bob
+    local part = pet:IsA("Model") and pet.PrimaryPart or pet
+    local originCFrame = part.CFrame
+    task.spawn(function()
+        while part and part.Parent do
+            local t = tick()
+            part.CFrame = originCFrame * CFrame.new(0, math.sin(t * 2) * 0.3, 0)
+            task.wait(0.03)
+        end
+    end)
+end
 local function popOutPet(pet, boxCFrame, displayLocation)
     local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
@@ -84,6 +140,70 @@ local function popOutPet(pet, boxCFrame, displayLocation)
             pet.CFrame = targetCFrame
         end
     end
+end
+
+local petDisplayScreen = game.Players.LocalPlayer.PlayerGui:WaitForChild("PetDisplayScreen")
+local frame = petDisplayScreen:WaitForChild("Frame")
+local okayButton = frame:WaitForChild("TextButton")
+local petImage = frame:WaitForChild("PetLogo")
+local rarityText = frame:WaitForChild("PetRarity")
+local function fadeGuiElement(element, targetAlpha, duration)
+    local tween = TweenService:Create(
+        element,
+        TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+        {BackgroundTransparency = targetAlpha}
+    )
+    tween:Play()
+    tween.Completed:Wait()
+end
+
+local function petdisplay(petName, weight)
+    -- Set the pet image
+    petImage.Image = petImages[petName] or ""
+    petImage.ImageTransparency = 1  -- start invisible
+    frame.BackgroundTransparency = 1
+
+    petDisplayScreen.Enabled = true
+    frame.Visible = true
+	if weight == 0.9 then
+		rarityText.Text = "Common Pet!"
+	elseif weight == 0.7 then
+		rarityText.Text = "Uncommon Pet!"
+	elseif weight == 0.3 then
+		rarityText.Text = "Rare Pet!"
+	elseif weight == 0.1 then
+		rarityText.Text = "Epic Pet!"
+	elseif weight == 0.001 then
+		rarityText.Text = "Legendary Pet!"
+	else
+		rarityText.Text = "u shouldnt be seeing this!!! lol!!!"
+	end
+    -- Fade the frame IN
+    TweenService:Create(frame, TweenInfo.new(0.5), {BackgroundTransparency = 0.2}):Play()
+    TweenService:Create(petImage, TweenInfo.new(0.5), {ImageTransparency = 0}):Play()
+    -- Also fade in any TextLabels inside the frame
+    for _, v in pairs(frame:GetDescendants()) do
+        if v:IsA("TextLabel") then
+            TweenService:Create(v, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+        end
+    end
+
+    -- Wait for okay button click, then fade OUT
+    local connection
+    connection = okayButton.MouseButton1Click:Connect(function()
+        connection:Disconnect()
+
+        TweenService:Create(frame, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+        TweenService:Create(petImage, TweenInfo.new(0.4), {ImageTransparency = 1}):Play()
+        for _, v in pairs(frame:GetDescendants()) do
+            if v:IsA("TextLabel") then
+                TweenService:Create(v, TweenInfo.new(0.4), {TextTransparency = 1}):Play()
+            end
+        end
+        task.wait(0.4)
+        frame.Visible = false
+        petDisplayScreen.Enabled = false
+    end)
 end
 -- Pet display positions
 local petLocations = {
@@ -222,7 +342,8 @@ ProximityPrompt.Triggered:Connect(function(player)
 		tween1:Play()
 		
 		local selectedPet = selectWeightedPet()
-		availablePets[selectedPet] = nil
+		local selectedWeight = availablePets[selectedPet]  -- save weight first
+		availablePets[selectedPet] = nil                   -- now remove it
 		
 		print("Selected pet:", selectedPet.Name)
 		print("Pets remaining:", petsRemaining - 1)
@@ -315,12 +436,13 @@ ProximityPrompt.Triggered:Connect(function(player)
 			-- Spawn the pet above the box immediately
 			confetti:Emit(200)
 			popOutPet(revealPet, boxPart.CFrame, displayLocation)
+			playPetAnimation(revealPet)
 			-- 🎬 Fade box out smoothly (decals included)
 			fadePartOrModel(boxPart, 1, 0.4)
 
 			-- Reset box CFrame
 			boxPart.CFrame = og_mystboxloc
-
+			petdisplay(selectedPet.Name, selectedWeight)
 			-- 🎬 Fade box back in
 			fadePartOrModel(boxPart, 0, 0.4)
 		end)
