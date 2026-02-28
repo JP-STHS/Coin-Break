@@ -2,30 +2,32 @@ local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 
 ProximityPrompt = workspace:WaitForChild("wellhole").ProximityPrompt
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Store available pets with weights (higher weight = more common)
 local availablePets = {
-	[workspace:WaitForChild("sadpet1")] = 0.9,
-	[workspace:WaitForChild("coolkpet2")] = 0.9,
-	[workspace:WaitForChild("jellipet3")] = 0.9,
-	[workspace:WaitForChild("epicpet4")] = 0.9,
-	[workspace:WaitForChild("schleppet5")] = 0.9,
-	[workspace:WaitForChild("cleetuspet6")] = 0.7,
-	[workspace:WaitForChild("bytepet7")] = 0.7,
-	[workspace:WaitForChild("yokaipet8")] = 0.7,
-	[workspace:WaitForChild("toothlesspet9")] = 0.7,
-	[workspace:WaitForChild("taikopet10")] = 0.7,
-	[workspace:WaitForChild("windowspet11")] = 0.3,
-	[workspace:WaitForChild("linuxpet12")] = 0.3,
-	[workspace:WaitForChild("partypet13")] = 0.3,
-	[workspace:WaitForChild("screechpet14")] = 0.3,
-	[workspace:WaitForChild("crinepet15")] = 0.3,
-	[workspace:WaitForChild("angrybirdpet16")] = 0.1,
-	[workspace:WaitForChild("happet17")] = 0.1,
-	[workspace:WaitForChild("ConorChudpet18")] = 0.1,
-	[workspace:WaitForChild("ballpet19")] = 0.1,
-	[workspace:WaitForChild("finalpet20")] = 0.001
+	[ReplicatedStorage:WaitForChild("sadpet1")] = 0.9,
+	[ReplicatedStorage:WaitForChild("coolkpet2")] = 0.9,
+	[ReplicatedStorage:WaitForChild("jellipet3")] = 0.9,
+	[ReplicatedStorage:WaitForChild("epicpet4")] = 0.9,
+	[ReplicatedStorage:WaitForChild("schleppet5")] = 0.9,
+	[ReplicatedStorage:WaitForChild("cleetuspet6")] = 0.7,
+	[ReplicatedStorage:WaitForChild("bytepet7")] = 0.7,
+	[ReplicatedStorage:WaitForChild("yokaipet8")] = 0.71,
+	[ReplicatedStorage:WaitForChild("toothlesspet9")] = 0.7,
+	[ReplicatedStorage:WaitForChild("taikopet10")] = 0.7,
+	[ReplicatedStorage:WaitForChild("windowspet11")] = 0.3,
+	[ReplicatedStorage:WaitForChild("linuxpet12")] = 0.3,
+	[ReplicatedStorage:WaitForChild("partypet13")] = 0.3,
+	[ReplicatedStorage:WaitForChild("screechpet14")] = 0.3,
+	[ReplicatedStorage:WaitForChild("crinepet15")] = 0.3,
+	[ReplicatedStorage:WaitForChild("angrybirdpet16")] = 0.1,
+	[ReplicatedStorage:WaitForChild("happet17")] = 0.1,
+	[ReplicatedStorage:WaitForChild("ConorChudpet18")] = 0.1,
+	[ReplicatedStorage:WaitForChild("ballpet19")] = 0.1,
+	[ReplicatedStorage:WaitForChild("finalpet20")] = 0.001
 }
+
 local petImages = {
     ["sadpet1"] = "rbxassetid://117424553745950",
     ["coolkpet2"] = "rbxassetid://74239884632300",
@@ -41,7 +43,7 @@ local petImages = {
 	["linuxpet12"] = "rbxassetid://94395338632861",
 	["partypet13"] = "rbxassetid://105242273291663",
 	["screechpet14"] = "rbxassetid://71180874056561",
-	["crinepet15"] = "rbxassetid://133880147682370",
+	["crinepet15"] = "rbxassetid://133880147682370", --needs fixing
 	["angrybirdpet16"] = "rbxassetid://8989817133",
 	["happet17"] = "rbxassetid://93707348604530",
 	["ConorChudpet18"] = "rbxassetid://126422228814757",
@@ -86,6 +88,31 @@ local function playPetAnimation(pet)
         end
     end)
 end
+local function playPetAnimation(pet, weight)
+    local controller = pet:FindFirstChildWhichIsA("AnimationController", true)
+    if controller then
+        local animation = pet:FindFirstChildWhichIsA("Animation", true)
+        local animator = controller:FindFirstChildWhichIsA("Animator")
+        if animation and animator then
+            local track = animator:LoadAnimation(animation)
+            track.Looped = true
+            track:Play()
+        end
+    end
+
+    if weight == 0.7 then
+    	local part = pet:FindFirstChildWhichIsA("BasePart", true)
+    if not part then return end
+    	local originCFrame = part.CFrame  -- store full CFrame including rotation
+    	task.spawn(function()
+			while part and part.Parent do
+				local t = tick()
+				part.CFrame = originCFrame * CFrame.new(0, math.sin(t * 2) * 0.3, 0)
+				task.wait(0.03)
+			end
+		end)
+	end
+end
 local function popOutPet(pet, boxCFrame, displayLocation)
     local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
@@ -95,13 +122,16 @@ local function popOutPet(pet, boxCFrame, displayLocation)
     if pet:IsA("Model") then
         -- Make sure PrimaryPart exists
         if not pet.PrimaryPart then
-            local mainPart = pet:FindFirstChildWhichIsA("BasePart")
-            if mainPart then
-                pet.PrimaryPart = mainPart
-            else
-                warn("No BasePart found for pet:", pet.Name)
-                return
-            end
+			local mainPart = pet:FindFirstChildWhichIsA("BasePart", true)
+			if not mainPart then
+				-- ADD THIS:
+				print("Contents of", pet.Name, ":")
+				for _, v in pairs(pet:GetDescendants()) do
+					print("  ", v.ClassName, v.Name)
+				end
+				warn("No BasePart found for pet:", pet.Name)
+				return
+			end
         end
         petPrimary = pet.PrimaryPart
         pivotCFrame = petPrimary.CFrame
@@ -212,9 +242,9 @@ local petLocations = {
 	["jellipet3"] = {position = Vector3.new(43, 4, -46), rotation = Vector3.new(0, 180, 0)},
 	["epicpet4"] = {position = Vector3.new(40, 4, -46), rotation = Vector3.new(0, 180, 0)},
 	["schleppet5"] = {position = Vector3.new(37, 4, -46), rotation = Vector3.new(0, 180, 0)},
-	["cleetuspet6"] = {position = Vector3.new(33.959, 5.573, -46.149), rotation = Vector3.new(-4.697, 0.337, -4.112)},
+	["cleetuspet6"] = {position = Vector3.new(33.959, 4.177, -46.149), rotation = Vector3.new(0, 180, 0)},
 	["bytepet7"] = {position = Vector3.new(31, 4, -46), rotation = Vector3.new(0, 180, 0)},
-	["yokaipet8"] = {position = Vector3.new(28.096, 3.992, -46), rotation = Vector3.new(0, 180, 0)},
+	["yokaipet8"] = {position = Vector3.new(28.096, 3.992, -46), rotation = Vector3.new(0, 175, 0)},
 	["toothlesspet9"] = {position = Vector3.new(25, 4, -46), rotation = Vector3.new(0, 180, 0)},
 	["taikopet10"] = {position = Vector3.new(22, 4, -46), rotation = Vector3.new(0, 180, 0)},
 	["windowspet11"] = {position = Vector3.new(49, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
@@ -359,17 +389,17 @@ ProximityPrompt.Triggered:Connect(function(player)
 			
 			-- Move and play box animation
 			
-			mysterybox.CFrame = CFrame.new(18.697, 6.469, -29.021)
+			mysterybox.CFrame = CFrame.new(18.697, 8.469, -29.021)
 			-- Move box into position
 			if mysterybox:IsA("Model") then
 				if mysterybox.PrimaryPart then
-					mysterybox:SetPrimaryPartCFrame(CFrame.new(18.697, 6.469, -29.021))
+					mysterybox:SetPrimaryPartCFrame(CFrame.new(18.697, 8.469, -29.021))
 				else
 					warn("Mystery box model has no PrimaryPart set!")
 					return
 				end
 			else
-				mysterybox.CFrame = CFrame.new(18.697, 6.469, -29.021)
+				mysterybox.CFrame = CFrame.new(18.697, 8.469, -29.021)
 			end
 
 			local boxPart = mysterybox
@@ -436,8 +466,7 @@ ProximityPrompt.Triggered:Connect(function(player)
 			-- Spawn the pet above the box immediately
 			confetti:Emit(200)
 			popOutPet(revealPet, boxPart.CFrame, displayLocation)
-			playPetAnimation(revealPet)
-			-- 🎬 Fade box out smoothly (decals included)
+			playPetAnimation(revealPet, selectedWeight)			-- 🎬 Fade box out smoothly (decals included)
 			fadePartOrModel(boxPart, 1, 0.4)
 
 			-- Reset box CFrame

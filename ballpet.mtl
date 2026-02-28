@@ -1,0 +1,45 @@
+newmtl Ballpet191Mtl
+Material Color
+Ka 0.111299 0.0461488 0.0528416
+Kd 0.111299 0.0461488 0.0528416
+Ke 0 0 0
+Ks 0.00698349 0.00289561 0.00331555 
+
+d 1
+
+Ns 0
+
+newmtl Ballpet192Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ke 0 0 0
+Ks 0.0627451 0.0627451 0.0627451 
+
+d 1
+
+Ns 0
+
+map_Ka Ballpet192_diff.png
+map_Kd Ballpet192_diff.png
+map_d Ballpet192_diff.png
+
+newmtl Eye21Mtl
+Material Color
+Ka 0.00258583 0.00258583 0.00258583
+Kd 0.00258583 0.00258583 0.00258583
+Ke 0 0 0
+Ks 0.00172388 0.00172388 0.00172388 
+
+d 1
+
+Ns 255
+
+map_Ka Eye21_diff.png
+map_Kd Eye21_diff.png
+map_d Eye21_diff.png
+
+map_Bump Eye21_nmap.png
+
+map_Ns Eye21_spec.png
+

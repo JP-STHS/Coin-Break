@@ -1,0 +1,41 @@
+newmtl Yokaipet8mesh1Mtl
+Material Color
+Ka 0.694081 0 0
+Kd 0.694081 0 0
+Ke 0 0 0
+Ks 0.27491 0 0 
+
+d 1
+
+Ns 0
+
+newmtl Yokaipet8mesh2Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ke 0 0 0
+Ks 0.396078 0.396078 0.396078 
+
+d 1
+
+Ns 0
+
+map_Ka Yokaipet8mesh2_diff.png
+map_Kd Yokaipet8mesh2_diff.png
+map_d Yokaipet8mesh2_diff.png
+
+newmtl Yokaipet8mesh3Mtl
+Material Color
+Ka 1 1 1
+Kd 1 1 1
+Ke 0 0 0
+Ks 0.396078 0.396078 0.396078 
+
+d 1
+
+Ns 0
+
+map_Ka Yokaipet8mesh3_diff.png
+map_Kd Yokaipet8mesh3_diff.png
+map_d Yokaipet8mesh3_diff.png
+
