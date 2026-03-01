@@ -46,9 +46,9 @@ local petImages = {
 	["crinepet15"] = "rbxassetid://133880147682370", --needs fixing
 	["angrybirdpet16"] = "rbxassetid://8989817133",
 	["happet17"] = "rbxassetid://93707348604530",
-	["ConorChudpet18"] = "rbxassetid://126422228814757",
-	["ballpet19"] = "rbxassetid://44121271",
-    ["finalpet20"]    = "rbxassetid://17358449907",
+	["ConorChudpet18"] = "rbxassetid://126422228814757", --needs fixing
+	["ballpet19"] = "rbxassetid://44121271", --needs fixing
+    ["finalpet20"]    = "rbxassetid://17358449907", --needs fixing
 }
 local mysterybox = workspace:WaitForChild("boxmyst")
 local confetti = workspace.boxmyst:WaitForChild("confettiparticle")
@@ -250,13 +250,13 @@ local petLocations = {
 	["windowspet11"] = {position = Vector3.new(49, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
 	["linuxpet12"] = {position = Vector3.new(46, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
 	["partypet13"] = {position = Vector3.new(43, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
-	["screechpet14"] = {position = Vector3.new(40, 6.999, -51), rotation = Vector3.new(0, -180, 0)},
+	["screechpet14"] = {position = Vector3.new(40, 7.5, -51), rotation = Vector3.new(0, -180, 0)},
 	["crinepet15"] = {position = Vector3.new(37, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
-	["angrybirdpet16"] = {position = Vector3.new(34.007, 7.17, -50.872), rotation = Vector3.new(-24.736, 176.245, -4.768)},
+	["angrybirdpet16"] = {position = Vector3.new(34.007, 6.999, -49.872), rotation = Vector3.new(0, 180, 0)},
 	["happet17"] = {position = Vector3.new(31, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
-	["ConorChudpet18"] = {position = Vector3.new(28.096, 8.053, -51), rotation = Vector3.new(0, 87.96, 0)},
+	["ConorChudpet18"] = {position = Vector3.new(28.096, 7.55, -51), rotation = Vector3.new(0, 180, 0)},
 	["ballpet19"] = {position = Vector3.new(25, 6.999, -51), rotation = Vector3.new(0, 0, 0)},
-	["finalpet20"] = {position = Vector3.new(21.5, 7.634, -51), rotation = Vector3.new(0, 180, 0)}
+	["finalpet20"] = {position = Vector3.new(21.5, 7.634, -51), rotation = Vector3.new(0, 0, 0)}
 }
 
 local function selectWeightedPet()
