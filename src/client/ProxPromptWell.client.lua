@@ -43,12 +43,12 @@ local petImages = {
 	["linuxpet12"] = "rbxassetid://94395338632861",
 	["partypet13"] = "rbxassetid://105242273291663",
 	["screechpet14"] = "rbxassetid://71180874056561",
-	["crinepet15"] = "rbxassetid://133880147682370", --needs fixing
-	["angrybirdpet16"] = "rbxassetid://8989817133",
+	["crinepet15"] = "rbxassetid://102267410892545",
+	["angrybirdpet16"] = "rbxassetid://8989817121",
 	["happet17"] = "rbxassetid://93707348604530",
-	["ConorChudpet18"] = "rbxassetid://126422228814757", --needs fixing
-	["ballpet19"] = "rbxassetid://44121271", --needs fixing
-    ["finalpet20"]    = "rbxassetid://17358449907", --needs fixing
+	["ConorChudpet18"] = "rbxassetid://95971066977472",
+	["ballpet19"] = "rbxassetid://17236199027",
+    ["finalpet20"]    = "rbxassetid://9305457875",
 }
 local mysterybox = workspace:WaitForChild("boxmyst")
 local confetti = workspace.boxmyst:WaitForChild("confettiparticle")
@@ -88,7 +88,7 @@ local function playPetAnimation(pet)
         end
     end)
 end
-local function playPetAnimation(pet, weight)
+local function playPetAnimation(pet)
     local controller = pet:FindFirstChildWhichIsA("AnimationController", true)
     if controller then
         local animation = pet:FindFirstChildWhichIsA("Animation", true)
@@ -99,19 +99,6 @@ local function playPetAnimation(pet, weight)
             track:Play()
         end
     end
-
-    if weight == 0.7 then
-    	local part = pet:FindFirstChildWhichIsA("BasePart", true)
-    if not part then return end
-    	local originCFrame = part.CFrame  -- store full CFrame including rotation
-    	task.spawn(function()
-			while part and part.Parent do
-				local t = tick()
-				part.CFrame = originCFrame * CFrame.new(0, math.sin(t * 2) * 0.3, 0)
-				task.wait(0.03)
-			end
-		end)
-	end
 end
 local function popOutPet(pet, boxCFrame, displayLocation)
     local tweenInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
@@ -197,7 +184,7 @@ local function petdisplay(petName, weight)
     frame.Visible = true
 	if weight == 0.9 then
 		rarityText.Text = "Common Pet!"
-	elseif weight == 0.7 then
+	elseif weight == 0.7 or weight == 0.71 then
 		rarityText.Text = "Uncommon Pet!"
 	elseif weight == 0.3 then
 		rarityText.Text = "Rare Pet!"
@@ -249,7 +236,7 @@ local petLocations = {
 	["taikopet10"] = {position = Vector3.new(22, 4, -46), rotation = Vector3.new(0, 180, 0)},
 	["windowspet11"] = {position = Vector3.new(49, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
 	["linuxpet12"] = {position = Vector3.new(46, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
-	["partypet13"] = {position = Vector3.new(43, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
+	["partypet13"] = {position = Vector3.new(43, 6.999, -50), rotation = Vector3.new(0, 180, 0)},
 	["screechpet14"] = {position = Vector3.new(40, 7.5, -51), rotation = Vector3.new(0, -180, 0)},
 	["crinepet15"] = {position = Vector3.new(37, 6.999, -51), rotation = Vector3.new(0, 180, 0)},
 	["angrybirdpet16"] = {position = Vector3.new(34.007, 6.999, -49.872), rotation = Vector3.new(0, 180, 0)},
@@ -466,7 +453,7 @@ ProximityPrompt.Triggered:Connect(function(player)
 			-- Spawn the pet above the box immediately
 			confetti:Emit(200)
 			popOutPet(revealPet, boxPart.CFrame, displayLocation)
-			playPetAnimation(revealPet, selectedWeight)			-- 🎬 Fade box out smoothly (decals included)
+			playPetAnimation(revealPet)			-- 🎬 Fade box out smoothly (decals included)
 			fadePartOrModel(boxPart, 1, 0.4)
 
 			-- Reset box CFrame
