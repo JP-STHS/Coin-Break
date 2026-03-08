@@ -350,6 +350,7 @@ ProximityPrompt.Triggered:Connect(function(player)
 		end
 
 		anim:Play()
+		ReplicatedStorage:WaitForChild("CoinUsed"):FireServer()
 		Tool:Destroy()
 		
 		task.wait(3)
