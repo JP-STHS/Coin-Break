@@ -1,8 +1,13 @@
+
 local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
 
 ProximityPrompt = workspace:WaitForChild("wellhole").ProximityPrompt
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- add these at the top of your script
+local UserInputService = game:GetService("UserInputService")
+
+
 
 -- Store available pets with weights (higher weight = more common)
 local availablePets = {
@@ -57,6 +62,7 @@ local og_mystboxloc = mysterybox.CFrame
 local function playPetAnimation(pet)
     local controller = pet:FindFirstChildWhichIsA("AnimationController", true)
     local humanoid = pet:FindFirstChildWhichIsA("Humanoid", true)
+	
 
     -- If it has a rig, play the real animation
     if controller or humanoid then
@@ -300,46 +306,65 @@ local function fadePartOrModel(partOrModel, targetTransparency, tweenTime)
 end
 
 ProximityPrompt.Triggered:Connect(function(player)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+    local effect = workspace:WaitForChild("particleforwell").wind
 
-	local character = player.Character or player.CharacterAdded:Wait()
-	local humanoid = character:WaitForChild("Humanoid")
-	local rootPart = character:WaitForChild("HumanoidRootPart")
-	local effect = workspace:WaitForChild("particleforwell").wind
-	
-	local animation = Instance.new("Animation")
-	animation.AnimationId = "rbxassetid://118615925266637"
-	local anim = humanoid:LoadAnimation(animation)
+    local animation = Instance.new("Animation")
+    animation.AnimationId = "rbxassetid://118615925266637"
+    local anim = humanoid:LoadAnimation(animation)
 
-	local Tool = player.Backpack:FindFirstChild("Coin") or player.Character:FindFirstChild("Coin")
-	if Tool and Tool.Parent == player.Character then
-		print("u used a coin")
-		
-		local petsRemaining = 0
-		for _ in pairs(availablePets) do
-			petsRemaining = petsRemaining + 1
-		end
-		
-		if petsRemaining == 0 then
-			print("No more pets available!")
-			return
-		end
-		
-		local prevWalkSpeed = humanoid.WalkSpeed
-		local prevJumpHeight = humanoid.JumpHeight
-		
-		local camera = workspace.CurrentCamera
-		local prevCameraType = camera.CameraType
-		
-		local camera1 = workspace:WaitForChild("Camera1")
-		local camera2 = workspace:WaitForChild("Camera2")
-		
-		humanoid.WalkSpeed = 0
-		humanoid.JumpHeight = 0
-		
+    local Tool = player.Backpack:FindFirstChild("Coin") or player.Character:FindFirstChild("Coin")
+    if Tool and Tool.Parent == player.Character then
+
+        -- save EVERYTHING first before touching anything
+        local prevRootCFrame = rootPart.CFrame
+        local prevWalkSpeed = humanoid.WalkSpeed
+        local prevJumpHeight = humanoid.JumpHeight
+        local camera = workspace.CurrentCamera
+        local prevCameraType = camera.CameraType
+
+        print("u used a coin")
+
+        local petsRemaining = 0
+        for _ in pairs(availablePets) do
+            petsRemaining = petsRemaining + 1
+        end
+
+        if petsRemaining == 0 then
+            print("No more pets available!")
+            return
+        end
+
+        local camera1 = workspace:WaitForChild("Camera1")
+        local camera2 = workspace:WaitForChild("Camera2")
+
+        -- now start modifying things
+        humanoid.WalkSpeed = 0
+        humanoid.JumpHeight = 0
+        UserInputService.MouseBehavior = Enum.MouseBehavior.Default
+        UserInputService.MouseIconEnabled = false
+        player.CameraMode = Enum.CameraMode.Classic
+        humanoid.CameraOffset = Vector3.new(0, 0, 0)
+
+        for _, part in pairs(character:GetDescendants()) do
+            if part:IsA("BasePart") or part:IsA("MeshPart") then
+                part.LocalTransparencyModifier = 0
+            end
+        end
+
+        -- before cutscene starts, after saving prevs:
+		local hasShiftlock = UserInputService.MouseBehavior == Enum.MouseBehavior.LockCenter
+		pcall(function()
+			StarterGui:SetCore("AvatarContextMenuEnabled", false)
+		end)
+		humanoid.AutoRotate = false -- stop shiftlock from rotating the character
+
 		camera.CameraType = Enum.CameraType.Scriptable
 		camera.CFrame = camera1.CFrame
-		
 		rootPart.CFrame = CFrame.new(25, 6.786, -29) * CFrame.Angles(0, math.rad(90), 0)
+
 		
 		local animatedCoin = game.ReplicatedStorage.CoinAnim:Clone()
 		animatedCoin.Parent = character
@@ -368,15 +393,22 @@ ProximityPrompt.Triggered:Connect(function(player)
 		
 		local displayLocation = petLocations[selectedPet.Name]
 		
+-- save before cutscene
 		anim.Stopped:Connect(function()
 			humanoid.WalkSpeed = prevWalkSpeed
 			humanoid.JumpHeight = prevJumpHeight
 			camera.CameraType = prevCameraType
+			player.CameraMode = Enum.CameraMode.Classic
+			UserInputService.MouseIconEnabled = true
+			-- no rootPart.CFrame restore at all
 			animatedCoin:Destroy()
+			humanoid.AutoRotate = true -- re-enable after cutscene
+			pcall(function()
+				StarterGui:SetCore("AvatarContextMenuEnabled", true)
+			end)
 			effect:Emit(100)
-			
+
 			-- Move and play box animation
-			
 			mysterybox.CFrame = CFrame.new(18.697, 8.469, -29.021)
 			-- Move box into position
 			if mysterybox:IsA("Model") then
