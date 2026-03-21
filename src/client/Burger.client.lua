@@ -43,6 +43,8 @@ bun:WaitForChild("ProximityPrompt").Triggered:Connect(function(player)
     if c.bun then return end  -- already collected
     c.bun = true
     print(player.Name .. " picked up bun")
+    local bunprox = bun:WaitForChild("ProximityPrompt")
+    bunprox.Enabled = false
     checkAllCollected(player)
 end)
 
@@ -51,6 +53,8 @@ patty:WaitForChild("ProximityPrompt").Triggered:Connect(function(player)
     if c.patty then return end
     c.patty = true
     print(player.Name .. " picked up patty")
+    local pattyprox = patty:WaitForChild("ProximityPrompt")
+    pattyprox.Enabled = false
     checkAllCollected(player)
 end)
 
@@ -59,5 +63,7 @@ lettuce:WaitForChild("ProximityPrompt").Triggered:Connect(function(player)
     if c.lettuce then return end
     c.lettuce = true
     print(player.Name .. " picked up lettuce")
+    local lettuceprox = lettuce:WaitForChild("ProximityPrompt")
+    lettuceprox.Enabled = false
     checkAllCollected(player)
 end)

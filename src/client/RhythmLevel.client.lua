@@ -6,6 +6,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local workspace = game:GetService("Workspace")
+local cooldown = false
 
 -- ============================================================
 -- CONFIGURATION
@@ -38,7 +39,7 @@ end
 
 -- Note colors per track
 local TRACK_COLOR = {
-    E = Color3.fromRGB(255, 220, 50),   -- yellow
+    E = Color3.fromRGB(12, 182, 89),   -- yellow
     Q = Color3.fromRGB(100, 180, 255),  -- blue
 }
 -- ============================================================
@@ -83,7 +84,7 @@ local isMobile = UserInputService.TouchEnabled and not UserInputService.Keyboard
 
 local btnE, btnQ
 if isMobile then
-    btnE = makeMobileButton("E", 0.6, Color3.fromRGB(255, 220, 50))
+    btnE = makeMobileButton("E", 0.6, Color3.fromRGB(12, 206, 77))
     btnQ = makeMobileButton("Q", 0.4, Color3.fromRGB(100, 180, 255))
     btnE.Visible = false
     btnQ.Visible = false
@@ -105,6 +106,7 @@ local function spawnNote(beatTime, track)
     local note = Instance.new("Part")
     note.Size       = Vector3.new(1, 0.5, 1)
     note.Color      = TRACK_COLOR[track]
+    note.Material   = Enum.Material.ForceField 
     note.Anchored   = true
     note.CanCollide = false
     note.Position   = spawnPart.Position
@@ -254,11 +256,20 @@ local function startGame()
         if btnE then btnE.Visible = false end
         if btnQ then btnQ.Visible = false end
         showScoreScreen()
-        score = 0  -- reset for next play
-        print("Song finished!")
-        -- At the end of the song, inside the task.delay(SONG_DURATION) block:
-        local event = game.ReplicatedStorage:FindFirstChild("MinigameDone")
-        if event then event:Fire() end
+        local percent = math.floor((score / math.max(totalNotes, 1)) * 100)
+        if percent >= 60 then
+            local event = game.ReplicatedStorage:FindFirstChild("MinigameDone")
+            if event then event:Fire() end
+        end
+
+        -- Wait for score screen to dismiss (5s) + cooldown (8s) before re-enabling
+        task.delay(5, function()
+            score = 0  -- reset after screen closes
+            task.delay(8, function()
+                cooldown = false
+                startButton.Color = Color3.fromRGB(231, 81, 81)
+            end)
+        end)
     end)
 end
 
@@ -266,10 +277,14 @@ end
 -- Start button
 -- -------------------------------------------------------
 local clickDetector = startButton:WaitForChild("ClickDetector")
+
 clickDetector.MouseClick:Connect(function(clickingPlayer)
-    if clickingPlayer == player then
-        startGame()
-    end
+    if clickingPlayer ~= player then return end
+    if cooldown or gameActive then return end
+
+    cooldown = true
+    startButton.Color = Color3.fromRGB(100, 0, 0)
+    startGame()
 end)
 
 -- -------------------------------------------------------

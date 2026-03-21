@@ -26,13 +26,30 @@ local Quest = {
 local minigameEvent = Instance.new("BindableEvent")
 minigameEvent.Name  = "MinigameDone"
 minigameEvent.Parent = game.ReplicatedStorage  -- other scripts can find it here
-minigameEvent.Event:Connect(function()
-    Quest.minigameDone = true
-end)
 local ingredientsEvent = game.ReplicatedStorage:WaitForChild("IngredientsCollected")
 ingredientsEvent.Event:Connect(function(firedPlayer)
     if firedPlayer == player then
         Quest.hasIngredients = true
+    end
+end)
+-- Wire secret sauce pickup
+local hotSauce = workspace:WaitForChild("HotSauce")
+local saucePrompt = hotSauce:WaitForChild("ProximityPrompt")
+
+-- Hide the prompt until the minigame is done
+saucePrompt.Enabled = false
+
+-- Watch for minigame completion to enable the prompt
+minigameEvent.Event:Connect(function()
+    Quest.minigameDone = true
+    saucePrompt.Enabled = true  -- now the player can pick it up
+end)
+
+-- When player picks up the sauce
+saucePrompt.Triggered:Connect(function(triggeringPlayer)
+    if triggeringPlayer == player then
+        Quest.hasSauce = true
+        saucePrompt.Enabled = false  -- can't pick it up again
     end
 end)
 -- ============================================================
@@ -236,37 +253,42 @@ local function getQuestLines()
     elseif Quest.hasSauce and not Quest.questComplete then
         Quest.questComplete = true
         return {
-            "Ok the burger is complete, thanks again dude.",
+            "Alright, that's everything. Thanks again dude.",
             "Your coin is up ahead.",
         }, function() closeDialogue() end
 
     elseif Quest.minigameDone and not Quest.hasSauce then
         return {
-            "Ay the power's back on! Thank you.",
+            "Ay, the power's back on! Thank you.",
             "Oh one more thing, could you find the secret sauce?",
-            "I promise the coin is yours if u get it.",
+            "I promise the coin is yours if you get it.",
         }, function() closeDialogue() end
 
     elseif Quest.hasIngredients and not Quest.minigameDone then
+        local Startbutton = workspace:WaitForChild("StartButton")
+        local cd = Instance.new("ClickDetector")
+        cd.MaxActivationDistance = 5
+        cd.Parent = Startbutton
         return {
             "Thanks, you got everything.",
             "I have a slight problem though...",
-            "The power is out rn, could you play that minigame over there to fix it plz",
+            "The power is out right now, and I can't cook this burger. Could you play that minigame over there to fix it?",
+            "You need to get at least a B score to get the power running, no idea why though. Just try to keep the beat."
         }, function() closeDialogue() end
 
     elseif Quest.accepted and not Quest.hasIngredients then
         return {
             "Did you forget the ingredients? It's a bun, a patty, and some lettuce.",
-            "Even the meat is on the shelf. It's all moldy anyways lol.",
+            "Even the meat is on the shelf. It's all moldy anyways LOL.",
         }, function() closeDialogue() end
 
     else
         -- First meeting — show yes/no choice
         return {
             "...",
-            "Hi there",
-            "Can u help me make a burger",
-            {text = "I'll give u a coin if u do", choice = true},
+            "Hi there.",
+            "Could you help me make... a burger.",
+            {text = "I'll give you a coin if you do.", choice = true},
         }, nil  -- onFinish handled by yes/no buttons
     end
 end
@@ -280,15 +302,24 @@ end
 -- ============================================================
 -- YES / NO HANDLERS
 -- ============================================================
+local bun1 = workspace:WaitForChild("Bun")
+local bunprox1 = bun1:WaitForChild("ProximityPrompt")
+local lettuce1 = workspace:WaitForChild("Lettuce")
+local lettuceprox1 = lettuce1:WaitForChild("ProximityPrompt")
+local meat1 = workspace:WaitForChild("Meat")
+local meat1prox = meat1:WaitForChild("ProximityPrompt")
 yesBtn.MouseButton1Click:Connect(function()
     if not choicePending then return end
     choicePending = false
     hideChoiceButtons()
     Quest.accepted = true
+    bunprox1.Enabled = true
+    lettuceprox1.Enabled = true
+    meat1prox.Enabled = true
     -- Continue with accepted lines
     advanceFn = playLines({
         "YAY :D",
-        "Here's the ingredients u need: a bun, a patty, and some lettuce.",
+        "Here's the ingredients I need: A bun, a patty, and some lettuce.",
     }, function() closeDialogue() end)
 end)
 
@@ -298,7 +329,7 @@ noBtn.MouseButton1Click:Connect(function()
     hideChoiceButtons()
     -- Show rejection line then close — dialogue resets so they can say yes next time
     advanceFn = playLines({
-        "bruh",
+        "Bruh.",
     }, function() closeDialogue() end)
 end)
 
@@ -313,6 +344,9 @@ RunService.Heartbeat:Connect(function()
 
     local dist = (root.Position - mesh.Position).Magnitude
 
+    -- Face the player (Y axis locked so it doesn't tilt up/down)
+    local lookAt = Vector3.new(root.Position.X, mesh.Position.Y, root.Position.Z)
+    mesh.CFrame = CFrame.lookAt(mesh.Position, lookAt) * CFrame.Angles(0, math.rad(90), 0)
     if dist <= TRIGGER_DISTANCE and not inRange then
         inRange = true
         openDialogue()
