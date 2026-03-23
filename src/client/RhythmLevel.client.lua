@@ -71,7 +71,7 @@ local function makeMobileButton(text, xPos, color)
     btn.BackgroundColor3 = color
     btn.Text = text
     btn.TextScaled = true
-    btn.Font = Enum.Font.GothamBold
+    btn.FontFace = Font.new("rbxassetid://12187371840")
     btn.TextColor3 = Color3.fromRGB(0, 0, 0)
     btn.Parent = screenGui
     local corner = Instance.new("UICorner")
@@ -80,7 +80,7 @@ local function makeMobileButton(text, xPos, color)
     return btn
 end
 
-local isMobile = UserInputService.TouchEnabled and not UserInputService.KeyboardEnabled
+local isMobile = UserInputService.TouchEnabled
 
 local btnE, btnQ
 if isMobile then
@@ -181,7 +181,10 @@ local function showScoreScreen()
     frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     frame.BorderSizePixel = 0
     frame.Parent = screenGui
-
+    local frameStroke = Instance.new("UIStroke")
+    frameStroke.Color = Color3.fromRGB(206, 100, 13)
+    frameStroke.Thickness = 2
+    frameStroke.Parent = frame
     local corner = Instance.new("UICorner")
     corner.CornerRadius = UDim.new(0.05, 0)
     corner.Parent = frame
@@ -192,7 +195,7 @@ local function showScoreScreen()
     label.BackgroundTransparency = 1
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.TextScaled = true
-    label.Font = Enum.Font.GothamBold
+    label.FontFace = Font.new("rbxassetid://12187371840")
     label.Text = string.format("Score: %d / %d", score, totalNotes)
     label.Parent = frame
 
@@ -216,7 +219,7 @@ local function showScoreScreen()
     gradeLabel.BackgroundTransparency = 1
     gradeLabel.TextColor3 = gradeColor
     gradeLabel.TextScaled = true
-    gradeLabel.Font = Enum.Font.GothamBold
+    gradeLabel.FontFace = Font.new("rbxassetid://12187371840")
     gradeLabel.Text = grade
     gradeLabel.Parent = frame
 

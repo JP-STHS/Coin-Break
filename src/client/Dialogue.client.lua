@@ -87,6 +87,39 @@ frame.Parent = screenGui
 local corner = Instance.new("UICorner")
 corner.CornerRadius = UDim.new(0.04, 0)
 corner.Parent = frame
+local frameStroke = Instance.new("UIStroke")
+frameStroke.Color = Color3.fromRGB(206, 100, 13)
+frameStroke.Thickness = 2
+frameStroke.Parent = frame
+
+-- Decorative circles matching the bubble image style
+local function makeCircle(size, xAnchor, yAnchor, xOffset, yOffset)
+    local circle = Instance.new("Frame")
+    circle.Size = UDim2.new(0, size, 0, size)
+    circle.Position = UDim2.new(xAnchor, xOffset, yAnchor, yOffset)
+    circle.AnchorPoint = Vector2.new(0.5, 0.5)
+    circle.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    circle.BackgroundTransparency = 0
+    circle.BorderSizePixel = 0
+    circle.Parent = frame
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(1, 0)
+    c.Parent = circle
+    local stroke = Instance.new("UIStroke")
+    stroke.Color = Color3.fromRGB(206, 100, 13)
+    stroke.Thickness = 2
+    stroke.Parent = circle
+    return circle
+end
+
+-- Big circle on the left
+makeCircle(60, 0, 0.5, -24, -60)
+-- Big circle on the bottom right
+makeCircle(60, 1, 1, 20, 20)
+-- Small dot top left area
+makeCircle(18, 0, 0, 20, -15)
+-- Small dot bottom right area
+makeCircle(12, 1, 1, -30, 35)
 
 local nameLabel = Instance.new("TextLabel")
 nameLabel.Size = UDim2.new(1, -20, 0, 28)
@@ -94,7 +127,7 @@ nameLabel.Position = UDim2.new(0, 10, 0, 8)
 nameLabel.BackgroundTransparency = 1
 nameLabel.TextColor3 = Color3.fromRGB(180, 220, 255)
 nameLabel.TextScaled = true
-nameLabel.Font = Enum.Font.GothamBold
+nameLabel.FontFace = Font.new("rbxassetid://12187371840", Enum.FontWeight.Bold)
 nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 nameLabel.Text = "Ghost Kitchen Chef"
 nameLabel.Parent = frame
@@ -105,7 +138,7 @@ textLabel.Position = UDim2.new(0, 10, 0, 40)
 textLabel.BackgroundTransparency = 1
 textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 textLabel.TextScaled = true
-textLabel.Font = Enum.Font.Gotham
+textLabel.FontFace = Font.new("rbxassetid://12187371840")
 textLabel.TextXAlignment = Enum.TextXAlignment.Left
 textLabel.TextWrapped = true
 textLabel.Text = ""
@@ -113,11 +146,11 @@ textLabel.Parent = frame
 
 local hintLabel = Instance.new("TextLabel")
 hintLabel.Size = UDim2.new(1, -10, 0, 18)
-hintLabel.Position = UDim2.new(0, 10, 1, -22)
+hintLabel.Position = UDim2.new(0, 0, 1, -22)
 hintLabel.BackgroundTransparency = 1
 hintLabel.TextColor3 = Color3.fromRGB(150, 150, 150)
 hintLabel.TextScaled = true
-hintLabel.Font = Enum.Font.Gotham
+hintLabel.FontFace = Font.new("rbxassetid://12187371840")
 hintLabel.TextXAlignment = Enum.TextXAlignment.Right
 hintLabel.Text = "Press E to continue"
 hintLabel.Parent = frame
@@ -132,7 +165,7 @@ local function makeChoiceButton(text, xAnchor, color)
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
     btn.Text = text
     btn.TextScaled = true
-    btn.Font = Enum.Font.GothamBold
+    btn.FontFace = Font.new("rbxassetid://12187371840", Enum.FontWeight.Bold)
     btn.Visible = false
     btn.Parent = frame
     local c = Instance.new("UICorner")
@@ -141,8 +174,8 @@ local function makeChoiceButton(text, xAnchor, color)
     return btn
 end
 
-local yesBtn = makeChoiceButton("erm ok", 0.15, Color3.fromRGB(50, 180, 80))
-local noBtn  = makeChoiceButton("lol nah", 0.85, Color3.fromRGB(180, 50, 50))
+local yesBtn = makeChoiceButton("erm ok", 0.15, Color3.fromRGB(28, 75, 39))
+local noBtn  = makeChoiceButton("lol nah", 0.85, Color3.fromRGB(85, 35, 35))
 
 -- ============================================================
 -- TYPEWRITER
@@ -357,11 +390,20 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ============================================================
--- E TO ADVANCE
+-- E TO ADVANCE (keyboard + console)
 -- ============================================================
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
-    if input.KeyCode == Enum.KeyCode.E and advanceFn then
-        advanceFn()
+    if input.KeyCode == Enum.KeyCode.E
+    or input.KeyCode == Enum.KeyCode.ButtonA  -- console A button
+    then
+        if advanceFn then advanceFn() end
+    end
+end)
+
+-- Mobile — tap the dialogue box itself to advance
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        if advanceFn then advanceFn() end
     end
 end)

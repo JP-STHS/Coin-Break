@@ -26,10 +26,10 @@ local availablePets = {
 	[ReplicatedStorage:WaitForChild("partypet13")] = 0.3,
 	[ReplicatedStorage:WaitForChild("screechpet14")] = 0.3,
 	[ReplicatedStorage:WaitForChild("crinepet15")] = 0.3,
-	[ReplicatedStorage:WaitForChild("angrybirdpet16")] = 0.1,
-	[ReplicatedStorage:WaitForChild("happet17")] = 0.1,
-	[ReplicatedStorage:WaitForChild("ConorChudpet18")] = 0.1,
-	[ReplicatedStorage:WaitForChild("ballpet19")] = 0.1,
+	[ReplicatedStorage:WaitForChild("angrybirdpet16")] = 0.05,
+	[ReplicatedStorage:WaitForChild("happet17")] = 0.05,
+	[ReplicatedStorage:WaitForChild("ConorChudpet18")] = 0.05,
+	[ReplicatedStorage:WaitForChild("ballpet19")] = 0.05,
 	[ReplicatedStorage:WaitForChild("finalpet20")] = 0.001
 }
 
