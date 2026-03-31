@@ -11,12 +11,20 @@ local bossHumanoid = boss:WaitForChild("Humanoid")
 local bossAnimator = bossHumanoid:WaitForChild("Animator")
 local bossRoot = boss:WaitForChild("HumanoidRootPart")
 local boundary = workspace:WaitForChild("1xBoundary")
+local SwordController = ReplicatedStorage:WaitForChild("SwordController")
 
 local crystalTemplate = ServerStorage:WaitForChild("SmallCrystal")
+-- no letting boss die off early
+bossHumanoid.MaxHealth = math.huge
+bossHumanoid.Health = math.huge
+bossHumanoid:SetAttribute("Invincible", true)
+bossHumanoid.HealthChanged:Connect(function()
+    bossHumanoid.Health = math.huge
+end)
 -- ============================================================
 -- CONFIGURATION
 -- ============================================================
-local STAGE1_HITS_REQUIRED  = 20
+local STAGE1_HITS_REQUIRED  = 3
 local CRYSTAL_DAMAGE         = 20
 local CRYSTAL_INTERVAL       = 7   -- seconds between crystal drops
 local CRYSTAL_COUNT_S1       = 3    -- how many crystals drop at once
@@ -197,8 +205,8 @@ end
 local function doBladeAttack()
      if not stage1Active then return end
     bladeAttackActive = true
-    loadedAnims.SignalBlade:Play()
-
+    SwordController:Invoke("pause")
+    loadedAnims.SignalBlade:Play(0, 1, 0.5)
     task.delay(0.8, function()
         local player = getNearestPlayer()
         if not player or not player.Character then return end
@@ -246,7 +254,7 @@ local function doBladeAttack()
                     returnTween:Play()
 
                     returnTween.Completed:Connect(function()
-                        -- Re-weld with exact original relative offset
+
                         local weld = Instance.new("Motor6D")
                         weld.Part0 = bossRoot
                         weld.Part1 = blade
@@ -254,6 +262,13 @@ local function doBladeAttack()
                         weld.C1 = CFrame.new()
                         weld.Parent = blade
                         blade.Anchored = false
+
+                        -- Resume floating once both blades are back
+                        if blade == sword2Primary then
+                            bladeAttackActive = false
+                            SwordController:Invoke("floating")
+                        end
+
                     end)
                 end)
             end
