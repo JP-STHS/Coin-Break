@@ -20,7 +20,7 @@ local largeCrystalTemplate = ServerStorage:WaitForChild("LargeCrystal")
 -- ============================================================
 -- CONFIGURATION
 -- ============================================================
-local STAGE2_HITS_REQUIRED  = 40
+local STAGE2_HITS_REQUIRED  = 1
 local CRYSTAL_DAMAGE_SMALL  = 10
 local CRYSTAL_DAMAGE_LARGE  = 20
 local CRYSTAL_INTERVAL      = 10
@@ -38,7 +38,7 @@ local BRACE_DISTANCE        = 20
 
 local ANIMS = {
     FloatIdle     = "rbxassetid://133632260307047",
-    SignalBlade   = "rbxassetid://102279275658749",
+    SignalBlade   = "rbxassetid://71337937039119",
     SignalCrystal = "rbxassetid://114320886639984",
     BraceIdle     = "rbxassetid://87836652330113",
     Angry         = "rbxassetid://93788484698091",
@@ -101,12 +101,12 @@ local function playIdle()
     if dist and dist <= BRACE_DISTANCE then
         if not loadedAnims.BraceIdle.IsPlaying then
             loadedAnims.FloatIdle:Stop(0.2)
-            loadedAnims.BraceIdle:Play(0.2)
+            loadedAnims.BraceIdle:Play(0.2, 10)
         end
     else
         if not loadedAnims.FloatIdle.IsPlaying then
             loadedAnims.BraceIdle:Stop(0.2)
-            loadedAnims.FloatIdle:Play(0.2)
+            loadedAnims.FloatIdle:Play(0.5, 1, 1)
         end
     end
 end
@@ -125,13 +125,13 @@ local function startFacing()
             bracing = true
             if not bladeAttackActive and not attackingCrystal then
                 loadedAnims.FloatIdle:Stop(0.3)
-                loadedAnims.BraceIdle:Play(0.3)
+                loadedAnims.BraceIdle:Play(0.3, 10)
             end
         elseif dist > BRACE_DISTANCE and bracing then
             bracing = false
             if not bladeAttackActive and not attackingCrystal then
                 loadedAnims.BraceIdle:Stop(0.3)
-                loadedAnims.FloatIdle:Play(0.3)
+                loadedAnims.FloatIdle:Play(0.5)
             end
         end
     end)
@@ -173,13 +173,32 @@ local function startRetreat()
 
         local currentY = bossRoot.Position.Y
         local newPos = Vector3.new(
-            bossRoot.Position.X + awayDir.X * 4 * dt,  -- speed 4, slower than stage 1
+            bossRoot.Position.X + awayDir.X * 8 * dt,  -- speed 8, quicker than stage 1
             currentY,
-            bossRoot.Position.Z + awayDir.Z * 4 * dt
+            bossRoot.Position.Z + awayDir.Z * 8 * dt
         )
 
         if insideBoundary(newPos) then
-            bossRoot.CFrame = CFrame.new(newPos)
+            bossRoot.CFrame = CFrame.new(newPos) * CFrame.Angles(
+                0,
+                math.atan2(
+                    -(playerRoot.Position.X - bossRoot.Position.X),
+                    -(playerRoot.Position.Z - bossRoot.Position.Z)
+                ),
+                0
+            )
+        end
+        -- Always face player regardless of movement
+        local angle = math.atan2(
+            -(playerRoot.Position.X - bossRoot.Position.X),
+            -(playerRoot.Position.Z - bossRoot.Position.Z)
+        )
+
+        if insideBoundary(newPos) then
+            bossRoot.CFrame = CFrame.new(newPos) * CFrame.Angles(0, angle, 0)
+        else
+            -- Can't move but still face player
+            bossRoot.CFrame = CFrame.new(bossRoot.Position) * CFrame.Angles(0, angle, 0)
         end
     end)
 end
@@ -271,7 +290,7 @@ local function doCrystalAttack()
     -- Stop idle, play signal
     loadedAnims.FloatIdle:Stop(0.1)
     loadedAnims.BraceIdle:Stop(0.1)
-    loadedAnims.SignalCrystal:Play(0.1)
+    loadedAnims.SignalCrystal:Play(1, 15)
 
     task.delay(0.8, function()
         local groundY = boundary.Position.Y - boundary.Size.Y / 2 + 2
@@ -297,7 +316,7 @@ local function doCrystalAttack()
 
     local animLength = loadedAnims.SignalCrystal.Length
     task.delay(animLength, function()
-        loadedAnims.SignalCrystal:Stop(0.1)
+        loadedAnims.SignalCrystal:Stop(0.5)
         attackingCrystal = false
         playIdle()
     end)
@@ -317,9 +336,9 @@ local function doBladeAttack()
     -- Stop idle, play signal
     loadedAnims.FloatIdle:Stop(0.1)
     loadedAnims.BraceIdle:Stop(0.1)
-    loadedAnims.SignalBlade:Play(0.1)
-
-    task.delay(0.8, function()
+    loadedAnims.SignalBlade:Play(1, 50, 1)
+    local randomnum = math.random(1.5,2)
+    task.delay(randomnum, function()
         local player, _ = getNearestPlayer()
         if not player or not player.Character then
             bladeAttackActive = false
@@ -382,7 +401,7 @@ local function doBladeAttack()
                         bladesReturned = bladesReturned + 1
                         if bladesReturned >= #blades then
                             bladeAttackActive = false
-                            loadedAnims.SignalBlade:Stop(0.1)
+                            loadedAnims.SignalBlade:Stop(0.3)
                             SwordController:Invoke("floating")
                             playIdle()
                         end
@@ -500,7 +519,7 @@ local function startStage2()
         track:Stop(0)
     end
     task.wait(0.1)  -- tiny wait to ensure they all stopped
-    loadedAnims.Angry:Play(0,10,0.5)
+    loadedAnims.Angry:Play(1,100,0.5)
     task.wait(loadedAnims.Angry.Length)  -- wait for most of the anim to finish
     loadedAnims.Angry:Stop(0.3)
 
@@ -524,7 +543,7 @@ local function startStage2()
     task.wait(1)
 
     -- Start idle and all systems
-    loadedAnims.FloatIdle:Play(0.3)
+    loadedAnims.FloatIdle:Play(1,1,1)
     startFacing()
     startRetreat()
     

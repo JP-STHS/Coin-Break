@@ -25,8 +25,8 @@ local FLOAT_OFFSET_1 = CFrame.new(-4, 1, 0) * CFrame.Angles(0, math.rad(180), ma
 local FLOAT_OFFSET_2 = CFrame.new(4, 1, 0) * CFrame.Angles(0, math.rad(180), math.rad(-60))    -- right side
 
 -- Hand offsets relative to Left/RightHand (stage 3)
-local HAND_OFFSET_1 = CFrame.new(0, -1, 0)    -- adjust to fit your sword mesh
-local HAND_OFFSET_2 = CFrame.new(0, -1, 0)
+local HAND_OFFSET_1 = CFrame.new(0, -0.5, -2) * CFrame.Angles(math.rad(180), 0, math.rad(-180))
+local HAND_OFFSET_2 = CFrame.new(0, -0.5, -2) * CFrame.Angles(math.rad(180), 0, math.rad(-180))
 -- ============================================================
 
 -- Weld a part to another part with an offset

@@ -24,7 +24,7 @@ end)
 -- ============================================================
 -- CONFIGURATION
 -- ============================================================
-local STAGE1_HITS_REQUIRED  = 3
+local STAGE1_HITS_REQUIRED  = 1
 local CRYSTAL_DAMAGE         = 20
 local CRYSTAL_INTERVAL       = 7   -- seconds between crystal drops
 local CRYSTAL_COUNT_S1       = 3    -- how many crystals drop at once
@@ -41,7 +41,7 @@ local BLADE_RETURN_SPEED     = 200   -- how fast blades return
 -- Animation IDs
 local ANIMS = {
     FloatIdle     = "rbxassetid://133632260307047",
-    SignalBlade   = "rbxassetid://102279275658749",
+    SignalBlade   = "rbxassetid://71337937039119",
     SignalCrystal = "rbxassetid://114320886639984",
 }
 
@@ -206,7 +206,7 @@ local function doBladeAttack()
      if not stage1Active then return end
     bladeAttackActive = true
     SwordController:Invoke("pause")
-    loadedAnims.SignalBlade:Play(0, 1, 0.5)
+    loadedAnims.SignalBlade:Play(1, 50, 0.5)
     task.delay(0.8, function()
         local player = getNearestPlayer()
         if not player or not player.Character then return end

@@ -133,10 +133,9 @@ local function runCutscene()
                     Enum.EasingStyle.Sine,
                     Enum.EasingDirection.Out
                 ), { CFrame = targetCFrame }):Play()
-                descendAnim:Play(0,8,1)
+                descendAnim:Play(0,2,1)
                 task.wait(DESCEND_DURATION)
-                descendAnim:Stop()
-                floatIdleAnim:Play(5,1,1)
+                floatIdleAnim:Play(5,5,1)
                 task.wait(shot.duration - DESCEND_DURATION - 0.5)
             else
                 task.wait(shot.duration)
