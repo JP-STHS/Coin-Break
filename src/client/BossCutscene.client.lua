@@ -20,7 +20,7 @@ local bossAnimator = bossHumanoid:WaitForChild("Animator")
 -- ============================================================
 -- ANIMATION IDs
 -- ============================================================
-local DESCEND_ID    = "rbxassetid://81539087617244"
+local DESCEND_ID    = "rbxassetid://101227097183351"
 local FLOAT_IDLE_ID = "rbxassetid://133632260307047"
 -- ============================================================
 
@@ -125,21 +125,45 @@ local function runCutscene()
                 Enum.EasingDirection.InOut
             ), { CFrame = camPart.CFrame }):Play()
 
-            if i == 5 then
-                task.wait(0.5)
-                local targetCFrame = CFrame.new(arenaCenter.X, arenaCenter.Y + 0, arenaCenter.Z)
-                TweenService:Create(bossRootPart, TweenInfo.new(
-                    DESCEND_DURATION,
-                    Enum.EasingStyle.Sine,
-                    Enum.EasingDirection.Out
-                ), { CFrame = targetCFrame }):Play()
-                descendAnim:Play(0,2,1)
-                task.wait(DESCEND_DURATION)
-                floatIdleAnim:Play(5,5,1)
-                task.wait(shot.duration - DESCEND_DURATION - 0.5)
-            else
-                task.wait(shot.duration)
-            end
+        if i == 5 then
+            task.wait(0.5)
+            local targetCFrame = CFrame.new(arenaCenter.X, arenaCenter.Y + 0, arenaCenter.Z)
+            TweenService:Create(bossRootPart, TweenInfo.new(
+                DESCEND_DURATION,
+                Enum.EasingStyle.Sine,
+                Enum.EasingDirection.Out
+            ), { CFrame = targetCFrame }):Play()
+            descendAnim:Play(0,2,1)
+            task.wait(DESCEND_DURATION)
+            floatIdleAnim:Play(5,50,1)
+            task.wait(shot.duration - DESCEND_DURATION - 0.5)
+        elseif i == 6 then
+            task.wait(shot.tween)
+
+            -- Create AND connect done event FIRST before firing dialogue
+            local dialogueDone = Instance.new("BindableEvent")
+            dialogueDone.Name = "BossDialogueDone"
+            dialogueDone.Parent = ReplicatedStorage
+
+            local done = false
+            dialogueDone.Event:Connect(function()
+                done = true
+            end)
+
+            -- NOW create and fire the start event
+            local dialogueEvent = Instance.new("BindableEvent")
+            dialogueEvent.Name = "StartBossDialogue"
+            dialogueEvent.Parent = ReplicatedStorage
+
+            task.wait(0.1)  -- tiny yield so GhostDialogue's WaitForChild can pick it up
+            dialogueEvent:Fire()
+
+            while not done do task.wait(0.1) end
+            dialogueEvent:Destroy()
+            dialogueDone:Destroy()
+        else
+            task.wait(shot.duration)
+        end
         end
     end
 
