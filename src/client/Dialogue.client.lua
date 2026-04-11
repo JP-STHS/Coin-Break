@@ -9,7 +9,10 @@ local workspace = game:GetService("Workspace")
 
 local npc = workspace:WaitForChild("Ghost")
 local mesh = npc:WaitForChild("GhostModel")
-
+local dialogueSoundGhost = Instance.new("Sound")
+dialogueSoundGhost.SoundId = "rbxassetid://135414832513483"
+dialogueSoundGhost.Volume = 1.5
+dialogueSoundGhost.Parent = npc
 -- ============================================================
 -- QUEST FLAGS — set these from your other scripts when things happen
 -- ============================================================
@@ -193,8 +196,15 @@ local function typeWrite(text)
             break
         end
         textLabel.Text = string.sub(text, 1, i)
+        -- only play on non-space characters so spaces don't trigger a sound
+        if string.sub(text, i, i) ~= " " then
+            dialogueSoundGhost:Stop()
+            dialogueSoundGhost.TimePosition = 0.1
+            dialogueSoundGhost:Play()
+        end
         task.wait(TALK_SPEED)
     end
+    dialogueSoundGhost:Stop()
     typing = false
 end
 

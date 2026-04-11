@@ -69,6 +69,7 @@ hintLabel.TextXAlignment = Enum.TextXAlignment.Right
 hintLabel.Text = "Press E to continue"
 hintLabel.Parent = frame
 
+
 -- ============================================================
 -- BOSS FACE SETUP
 -- ============================================================
@@ -84,6 +85,7 @@ local FACE_TALK_2 = "rbxassetid://121067166864251"
 local FACE_LAUGH_1 = "rbxassetid://125932915076983"
 local FACE_LAUGH_2 = "rbxassetid://91224317945990"
 
+
 -- Which lines should use the laugh faces instead of talk faces
 -- (0-indexed from 1 to match the lines table below)
 local LAUGH_LINES = {
@@ -91,7 +93,14 @@ local LAUGH_LINES = {
     [14] = true,  -- "GAHAHAHAHAHA"
 }
 
-local faceBlink = nil  -- holds the current blink loop thread
+-- =====
+-- AUDIO
+-- =====
+local dialogueSoundBoss = Instance.new("Sound")
+dialogueSoundBoss.SoundId = "rbxassetid://105775641633938"
+dialogueSoundBoss.Volume = 2.5
+dialogueSoundBoss.Parent = bossHead
+
 
 local faceAnimRunning = false
 
@@ -138,6 +147,7 @@ local function typeWrite(text)
             break
         end
         textLabel.Text = string.sub(text, 1, i)
+        dialogueSoundBoss:Play()
         task.wait(TALK_SPEED)
     end
     typing = false
