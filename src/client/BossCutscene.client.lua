@@ -68,33 +68,34 @@ local function unfreezePlayer()
     humanoid.JumpHeight = 7.2
 end
 
-local function fadeScreen(targetTransparency, duration)
-    local gui = player.PlayerGui:FindFirstChild("FadeGui")
-    if not gui then
-        gui = Instance.new("ScreenGui")
-        gui.Name = "FadeGui"
-        gui.ResetOnSpawn = false
-        gui.DisplayOrder = 99
-        gui.Parent = player.PlayerGui
+-- local function fadeScreen(targetTransparency, duration)
+--     local gui = player.PlayerGui:FindFirstChild("FadeGui")
+--     if not gui then
+--         gui = Instance.new("ScreenGui")
+--         gui.Name = "FadeGui"
+--         gui.ResetOnSpawn = false
+--         gui.DisplayOrder = 99
+--         gui.Parent = player.PlayerGui
 
-        local frame = Instance.new("Frame")
-        frame.Name = "FadeFrame"
-        frame.Size = UDim2.new(1, 0, 1, 0)
-        frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        frame.BackgroundTransparency = 1
-        frame.BorderSizePixel = 0
-        frame.Parent = gui
-    end
+--         local frame = Instance.new("Frame")
+--         frame.Name = "FadeFrame"
+--         frame.Size = UDim2.new(1, 0, 1, 0)
+--         frame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+--         frame.BackgroundTransparency = 1
+--         frame.BorderSizePixel = 0
+--         frame.Parent = gui
+--     end
 
-    local frame = gui:WaitForChild("FadeFrame")
-    TweenService:Create(frame, TweenInfo.new(duration), {
-        BackgroundTransparency = targetTransparency
-    }):Play()
-    task.wait(duration)
-end
+--     local frame = gui:WaitForChild("FadeFrame")
+--     TweenService:Create(frame, TweenInfo.new(duration), {
+--         BackgroundTransparency = targetTransparency
+--     }):Play()
+--     task.wait(duration)
+-- end
 local function runCutscene()
+    local hideHotbar = ReplicatedStorage:WaitForChild("HideHotbar")
+    hideHotbar:Fire()
     freezePlayer()
-
     -- Move boss above arena
     local arenaCenter = bossRootPart.Position
     bossRootPart.CFrame = CFrame.new(
@@ -109,7 +110,8 @@ local function runCutscene()
     camera.CFrame = firstCam.CFrame
 
     -- Now fade in to reveal the arena
-    fadeScreen(1, 1.5)
+    -- fadeScreen(1, 1.5)
+    ReplicatedStorage:WaitForChild("CircleOpen"):Fire(1.1)
     task.wait(0.3)
 
     -- Run through camera shots (skip snapping cam 1 since we already did it)
@@ -168,20 +170,22 @@ local function runCutscene()
     end
 
     -- Fade out at end
-    fadeScreen(0, 0.4)  -- fade to black (was 1, 0.4)
+    -- fadeScreen(0, 0.4)  -- fade to black (was 1, 0.4)
     task.wait(0.4)
     camera.CameraType = Enum.CameraType.Custom
-    fadeScreen(1, 0.6)  -- fade to clear (was 0, 0.6)
+    -- fadeScreen(1, 0.6)  -- fade to clear (was 0, 0.6)
     task.wait(0.6)
 
-    local fadeGui = player.PlayerGui:FindFirstChild("FadeGui")
-    if fadeGui then fadeGui:Destroy() end
+    -- local fadeGui = player.PlayerGui:FindFirstChild("FadeGui")
+    -- if fadeGui then fadeGui:Destroy() end
 
     unfreezePlayer()
     print("Firing CutsceneDone")
     local cutsceneDone = ReplicatedStorage:WaitForChild("CutsceneDone")
     cutsceneDone:FireServer()
     print("Cutscene done!")
+    local showHotbar = ReplicatedStorage:WaitForChild("ShowHotbar")
+    showHotbar:Fire()
 end
 
 -- ============================================================
@@ -194,12 +198,12 @@ local spawnInArena = portal2:WaitForChild("playerspot")  -- teleport destination
 
 local triggered = false
 portal.Touched:Connect(function(hit)
+    ReplicatedStorage:WaitForChild("CircleClose"):Fire(0.2)
     if triggered then return end
     if hit.Parent ~= character then return end
     triggered = true
 
     -- Instantly black screen
-    fadeScreen(0, 0)
     task.wait(0.1)
 
     -- Teleport player while screen is black

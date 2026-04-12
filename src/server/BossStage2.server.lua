@@ -488,7 +488,10 @@ end)
 -- ============================================================
 -- START STAGE 2
 -- ============================================================
+local audiophase2 = boss:WaitForChild("1xPhase2")
 local function startStage2()
+    audiophase2:Play()
+     -- Move boss to center
     stage2Active = true
     hitCount = 0
     stage2Done = false

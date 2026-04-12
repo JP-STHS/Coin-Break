@@ -380,6 +380,7 @@ end
 -- HIT TRACKING
 -- ============================================================
 local bossHitEvent = ReplicatedStorage:WaitForChild("BossHit")
+local audiophase4 = boss:WaitForChild("1xDeath")
 
 bossHitEvent.Event:Connect(function(player)
     if not stage3Active or stage3Done then return end
@@ -387,6 +388,7 @@ bossHitEvent.Event:Connect(function(player)
     print(string.format("Stage 3 hits: %d / %d", hitCount, STAGE3_HITS_REQUIRED))
 
     if hitCount >= STAGE3_HITS_REQUIRED then
+        audiophase4:Play()
         stage3Done = true
         stage3Active = false
         stopChase()
@@ -422,7 +424,9 @@ end)
 -- ============================================================
 -- START STAGE 3
 -- ============================================================
+local audiophase3 = boss:WaitForChild("1xPhase3")
 local function startStage3()
+    audiophase3:Play()
     stage3Active  = true
     hitCount      = 0
     stage3Done    = false

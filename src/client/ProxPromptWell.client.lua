@@ -169,7 +169,7 @@ local petDisplayScreen = game.Players.LocalPlayer.PlayerGui:WaitForChild("PetDis
 local frame = petDisplayScreen:WaitForChild("Frame")
 local okayButton = frame:WaitForChild("TextButton")
 local petImage = frame:WaitForChild("PetLogo")
-local rarityText = frame:WaitForChild("PetRarity")
+local rarityText = frame:WaitForChild("BPetRarity")
 local function fadeGuiElement(element, targetAlpha, duration)
     local tween = TweenService:Create(
         element,
@@ -226,7 +226,9 @@ local function petdisplay(petName, weight)
         task.wait(0.4)
         frame.Visible = false
         petDisplayScreen.Enabled = false
-    end)
+		local showHotbar = ReplicatedStorage:WaitForChild("ShowHotbar")
+		showHotbar:Fire()
+	end)
 end
 -- Pet display positions
 local petLocations = {
@@ -373,8 +375,9 @@ ProximityPrompt.Triggered:Connect(function(player)
 		if motor then
 			motor.Part0 = character:FindFirstChild("RightHand")
 		end
-
-		anim:Play()
+		local hideHotbar = ReplicatedStorage:WaitForChild("HideHotbar")
+    	hideHotbar:Fire()
+		anim:Play(1,100,1)
 		ReplicatedStorage:WaitForChild("CoinUsed"):FireServer()
 		Tool:Destroy()
 		
@@ -395,6 +398,7 @@ ProximityPrompt.Triggered:Connect(function(player)
 		
 -- save before cutscene
 		anim.Stopped:Connect(function()
+
 			humanoid.WalkSpeed = prevWalkSpeed
 			humanoid.JumpHeight = prevJumpHeight
 			camera.CameraType = prevCameraType

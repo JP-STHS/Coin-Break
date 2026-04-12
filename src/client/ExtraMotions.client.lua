@@ -39,7 +39,7 @@ local function playAnim(id, speed)
     local anim = Instance.new("Animation")
     anim.AnimationId = id
     local track = animator:LoadAnimation(anim)
-    track:Play(0)
+    track:Play(0.1, 2, 1) -- fade in, priority, default speed
     track:AdjustSpeed(speed or 1)
     return track
 end
