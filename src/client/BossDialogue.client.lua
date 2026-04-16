@@ -90,7 +90,7 @@ local FACE_LAUGH_2 = "rbxassetid://91224317945990"
 -- (0-indexed from 1 to match the lines table below)
 local LAUGH_LINES = {
     [7] = true,   -- "JUST KIDDING!!!"
-    [14] = true,  -- "GAHAHAHAHAHA"
+    [15] = true,  -- "GAHAHAHAHAHA"
 }
 
 -- =====
@@ -227,17 +227,18 @@ startBossDialogue.Event:Connect(function()
         "Do I know you?",             -- 1  talk
         "...",                        -- 2  talk
         "Your the one whose pets I stole right..?", -- 3  talk
-        "Sorry about that, you can have them back now", -- 4  talk
+        "Sorry about that, you can have them back now.", -- 4  talk
         "...",                        -- 5  talk
         "...",                        -- 6  talk
         "JUST KIDDING!!!",            -- 7  LAUGH
-        "Sorry, but I need their life source to get back to my true strength.",
+        "I still need them, unfortunately.",
         "Who would have thought those little bums would have so much untapped power...", -- 8  talk
         "... wait a minute, are some of them missing...?", -- 9  talk
+        "...",
         "... you took some back didn't you...", -- 10 talk
         "...",                        -- 11 talk
         "Whatever, I'll just kill you and get them back.", -- 12 talk
-        "GAHAHAHAHAHA!!!"                -- 14 LAUGH
+        "GAHAHAHAHAHA!!!"                -- 15 LAUGH
     }, function()
         closeDialogue()
         print("[BossDialogue] Done, firing BossDialogueDone...")

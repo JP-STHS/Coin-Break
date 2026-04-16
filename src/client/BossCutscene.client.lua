@@ -1,5 +1,6 @@
 -- BossCutscene LocalScript
 -- Place in StarterPlayerScripts
+local Lighting = game:GetService("Lighting")
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -192,23 +193,22 @@ end
 -- PORTAL TOUCH — teleport player then run cutscene
 -- ============================================================
 local portalparent = workspace:WaitForChild("Portal")
-local portal = portalparent:WaitForChild("Portal")
+local portal = portalparent:WaitForChild("Door")
 local portal2 = workspace:WaitForChild("Portal2")
 local spawnInArena = portal2:WaitForChild("playerspot")  -- teleport destination
 
 local triggered = false
 portal.Touched:Connect(function(hit)
-    ReplicatedStorage:WaitForChild("CircleClose"):Fire(0.2)
     if triggered then return end
     if hit.Parent ~= character then return end
     triggered = true
-
     -- Instantly black screen
-    task.wait(0.1)
-
     -- Teleport player while screen is black
-    rootPart.CFrame = spawnInArena.CFrame + Vector3.new(0, 3, 0)
     freezePlayer()
+    Lighting.TimeOfDay = "23:00:00"  -- ensure consistent lighting for cutscene
+    ReplicatedStorage:WaitForChild("CircleClose"):Fire(0.2)
+    task.wait(1)
+    rootPart.CFrame = spawnInArena.CFrame + Vector3.new(0, 3, 0)
 
     -- Wait a moment for the arena to fully render
     task.wait(2)

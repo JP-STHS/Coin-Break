@@ -31,6 +31,11 @@ local CHARGE_SPEED    = 60
 local CHARGE_DURATION = 0.6
 local CHARGE_DAMAGE   = 25
 local nextChargeTime  = math.random(CHARGE_COOLDOWN_MIN, CHARGE_COOLDOWN_MAX)
+--audio
+local bossslash = boss:WaitForChild("1xslash")
+local bosscharge = boss:WaitForChild("1xChase")
+local swordfling = boss:WaitForChild("swordfling")
+local bosshit = boss:WaitForChild("Impact")
 -- ============================================================
 
 local ANIMS = {
@@ -122,7 +127,7 @@ local function doCharge()
     -- Direction toward player locked in at start of charge
     local chargeDir = (playerRoot.Position - bossRoot.Position)
     chargeDir = Vector3.new(chargeDir.X, 0, chargeDir.Z).Unit
-
+    bosscharge:Play()
     local elapsed = 0
     local chargeConn
     local alreadyHit = {}
@@ -229,7 +234,7 @@ local function doSlash()
     -- Stop chase anim, play slash
     loadedAnims.Chase:Stop(0.1)
     loadedAnims.Slash:Play(0.3, 30, 0.6)
-
+    bossslash:Play()
     -- Damage check during slash
     local hitConn
     local slashHit = {}  -- track who has been hit this slash
@@ -271,7 +276,7 @@ local function doTeleport(playerRoot)
 
     loadedAnims.Chase:Stop(0.1)
     loadedAnims.Teleport:Play(0.1, 5)
-
+    swordfling:Play()
     -- Fade out
     for _, part in ipairs(boss:GetDescendants()) do
         if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
@@ -386,7 +391,7 @@ bossHitEvent.Event:Connect(function(player)
     if not stage3Active or stage3Done then return end
     hitCount = hitCount + 1
     print(string.format("Stage 3 hits: %d / %d", hitCount, STAGE3_HITS_REQUIRED))
-
+    bosshit:Play()
     if hitCount >= STAGE3_HITS_REQUIRED then
         audiophase4:Play()
         stage3Done = true
@@ -459,12 +464,12 @@ local function startStage3()
     SwordController:Invoke("held")
 
     -- Boss comes down to ground level
-    bossRoot.Anchored = false
-    local groundY = boundary.Position.Y - boundary.Size.Y / 2 + 3
-    TweenService:Create(bossRoot, TweenInfo.new(
-        1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out
-    ), {CFrame = CFrame.new(bossRoot.Position.X, groundY, bossRoot.Position.Z)}):Play()
-    task.wait(1.5)
+    -- bossRoot.Anchored = false
+    -- local groundY = boundary.Position.Y - boundary.Size.Y / 2 + 3
+    -- TweenService:Create(bossRoot, TweenInfo.new(
+    --     1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out
+    -- ), {CFrame = CFrame.new(bossRoot.Position.X, groundY, bossRoot.Position.Z)}):Play()
+    -- task.wait(1.5)
 
     -- play transition then go to chase
     loadedAnims.Transition:Play(0.3, 60)

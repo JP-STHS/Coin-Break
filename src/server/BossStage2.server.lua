@@ -16,7 +16,11 @@ local spawnSpot = workspace:WaitForChild("Portal2"):WaitForChild("playerspot")
 
 local smallCrystalTemplate = ServerStorage:WaitForChild("SmallCrystal")
 local largeCrystalTemplate = ServerStorage:WaitForChild("LargeCrystal")
-
+-- audio
+local crystalfall = boss:WaitForChild("CrystalFall")
+local swordfling = boss:WaitForChild("swordfling")
+local bossslash = boss:WaitForChild("1xslash")
+local bosshitaudio = boss:WaitForChild("Impact")
 -- ============================================================
 -- CONFIGURATION
 -- ============================================================
@@ -45,10 +49,22 @@ local ANIMS = {
 }
 
 local loadedAnims = {}
+local ANIM_PRIORITIES = {
+    FloatIdle     = Enum.AnimationPriority.Idle,
+    BraceIdle     = Enum.AnimationPriority.Movement,
+    SignalBlade   = Enum.AnimationPriority.Action,
+    SignalCrystal = Enum.AnimationPriority.Action,
+    Angry         = Enum.AnimationPriority.Action,
+}
+
 local function loadAnim(name, id)
     local anim = Instance.new("Animation")
     anim.AnimationId = id
-    loadedAnims[name] = bossAnimator:LoadAnimation(anim)
+    local track = bossAnimator:LoadAnimation(anim)
+    if ANIM_PRIORITIES[name] then
+        track.Priority = ANIM_PRIORITIES[name]
+    end
+    loadedAnims[name] = track
 end
 for name, id in pairs(ANIMS) do loadAnim(name, id) end
 
@@ -97,16 +113,15 @@ end
 local function playIdle()
     if not stage2Active then return end
     if bladeAttackActive or attackingCrystal then return end
-    local _, dist = getNearestPlayer()
-    if dist and dist <= BRACE_DISTANCE then
+    if bracing then
+        loadedAnims.FloatIdle:Stop(0)
         if not loadedAnims.BraceIdle.IsPlaying then
-            loadedAnims.FloatIdle:Stop(0.2)
-            loadedAnims.BraceIdle:Play(0.2, 10)
+            loadedAnims.BraceIdle:Play(0.6, 2, 1)
         end
     else
+        loadedAnims.BraceIdle:Stop(0)
         if not loadedAnims.FloatIdle.IsPlaying then
-            loadedAnims.BraceIdle:Stop(0.2)
-            loadedAnims.FloatIdle:Play(0.5, 1, 1)
+            loadedAnims.FloatIdle:Play(0.3, 1, 1)
         end
     end
 end
@@ -120,18 +135,26 @@ local function startFacing()
         local player, dist = getNearestPlayer()
         if not player or not dist then return end
 
-        -- Update idle/brace based on distance only
         if dist <= BRACE_DISTANCE and not bracing then
             bracing = true
             if not bladeAttackActive and not attackingCrystal then
-                loadedAnims.FloatIdle:Stop(0.3)
-                loadedAnims.BraceIdle:Play(0.3, 10)
+                -- stop float completely before brace plays
+                loadedAnims.FloatIdle:Stop(0)
+                task.defer(function()
+                    if bracing and not bladeAttackActive and not attackingCrystal then
+                        loadedAnims.BraceIdle:Play(0.6, 2, 1)
+                    end
+                end)
             end
         elseif dist > BRACE_DISTANCE and bracing then
             bracing = false
             if not bladeAttackActive and not attackingCrystal then
-                loadedAnims.BraceIdle:Stop(0.3)
-                loadedAnims.FloatIdle:Play(0.5)
+                loadedAnims.BraceIdle:Stop(0)
+                task.defer(function()
+                    if not bracing and not bladeAttackActive and not attackingCrystal then
+                        loadedAnims.FloatIdle:Play(0.3, 1, 1)
+                    end
+                end)
             end
         end
     end)
@@ -242,7 +265,7 @@ end
 local function spawnCrystal(targetPos, template, damage)
     local crystal = template:Clone()
     crystal.Parent = workspace
-
+    crystalfall:Play()
     local hitbox = crystal:FindFirstChild("Hitbox")
 
     for _, part in ipairs(crystal:GetDescendants()) do
@@ -356,7 +379,7 @@ local function doBladeAttack()
 
         local blades = {sword1Primary, sword2Primary}
         local bladesReturned = 0
-
+        swordfling:Play()
         for _, blade in ipairs(blades) do
             local relativeOffset = bossRoot.CFrame:Inverse() * blade.CFrame
 
@@ -472,7 +495,7 @@ bossHitEvent.Event:Connect(function(player)
     if not stage2Active or stage2Done then return end
     hitCount = hitCount + 1
     print(string.format("Stage 2 hits: %d / %d", hitCount, STAGE2_HITS_REQUIRED))
-
+    bosshitaudio:Play()
     if hitCount >= STAGE2_HITS_REQUIRED then
         stage2Done = true
         stage2Active = false
@@ -546,9 +569,14 @@ local function startStage2()
     task.wait(1)
 
     -- Start idle and all systems
-    loadedAnims.FloatIdle:Play(1,1,1)
+    -- start facing first so bracing state is set correctly
     startFacing()
     startRetreat()
+
+    -- then pick the right idle based on current distance
+    task.defer(function()
+        playIdle()
+    end)
     
     startCrystalLoop()
     startBladeLoop()

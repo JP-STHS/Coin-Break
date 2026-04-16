@@ -45,6 +45,10 @@ local ANIMS = {
     SignalCrystal = "rbxassetid://114320886639984",
 }
 
+local swordflingsound = boss:WaitForChild("swordfling")
+local crystalfallsound = boss:WaitForChild("CrystalFall")
+
+
 local loadedAnims = {}
 local function loadAnim(name, id)
     local anim = Instance.new("Animation")
@@ -113,7 +117,6 @@ end
 local function spawnCrystal(targetPos)
     local crystal = crystalTemplate:Clone()
     crystal.Parent = workspace
-
     local hitbox = crystal:FindFirstChild("Hitbox")
     if not hitbox then
         -- search descendants if not direct child
@@ -154,7 +157,7 @@ local function spawnCrystal(targetPos)
             conn:Disconnect()
         end
     end)
-
+    crystalfallsound:Play()
     -- Damage on hitbox touch
     if hitbox then
         local alreadyHit = {}
@@ -237,7 +240,7 @@ local function doBladeAttack()
 
             local hitCheckConn
             local returned = false
-
+            swordflingsound:Play()
             local function returnBlade()
                 if returned then return end
                 returned = true
@@ -392,10 +395,11 @@ end
 -- HIT TRACKING
 -- ============================================================
 local bossHitEvent = ReplicatedStorage:WaitForChild("BossHit")
-
+local bosshitaudio = boss:WaitForChild("Impact")
 bossHitEvent.Event:Connect(function(player)
     if not stage1Active or stage1Done then return end
     hitCount = hitCount + 1
+    bosshitaudio:Play()
     print(string.format("Stage 1 hits: %d / %d", hitCount, STAGE1_HITS_REQUIRED))
 
     if hitCount >= STAGE1_HITS_REQUIRED then
