@@ -1,17 +1,20 @@
+
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
 
 local character, humanoid, animator
 
-local canDoubleJumpAfter = 0
 local jumpPower = 50
 local jumpCount = 0
 local isDiving = false
 local diveTrack = nil
 local doubleJumpTrack = nil
+local windEffect = Workspace:WaitForChild("WindEffect") -- reference to wind effect in workspace
+local diveSound = Workspace:WaitForChild("WhooshSound")
 
-local DOUBLE_JUMP_ANIM_ID = "rbxassetid://126942515817919"
+local DOUBLE_JUMP_ANIM_ID = "rbxassetid://91955376496610"
 local DIVE_ANIM_ID = "rbxassetid://127817629246125"
 
 local function setupCharacter(char)
@@ -21,7 +24,8 @@ local function setupCharacter(char)
     jumpCount = 0
     isDiving = false
     diveTrack = nil
-
+    windEffect.Enabled = false
+    windEffect.Parent = character:WaitForChild("HumanoidRootPart")
     humanoid.StateChanged:Connect(function(_, newState)
         if newState == Enum.HumanoidStateType.Landed or newState == Enum.HumanoidStateType.Running then
             jumpCount = 0
@@ -57,6 +61,10 @@ local function onJumpRequest()
         jumpCount += 1
         stopDefaultAnims()
         doubleJumpTrack = playAnim(DOUBLE_JUMP_ANIM_ID, 1)
+        windEffect.Enabled = true
+        task.delay(0.05, function() -- small delay to sync with anim start
+            windEffect.Enabled = false
+        end)
         local doubleJumpSpeed = 1
         humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         humanoid:Move(Vector3.new(0, jumpPower, 0))
@@ -84,6 +92,11 @@ local function onDive()
             doubleJumpTrack = nil
         end
         diveTrack = playAnim(DIVE_ANIM_ID,1) -- plays instantly, save track for cancelling
+        diveSound:Play()
+        windEffect.Enabled = true
+        task.delay(0.05, function() -- small delay to sync with anim start
+            windEffect.Enabled = false
+        end)
         local rootPart = character:FindFirstChild("HumanoidRootPart")
         if rootPart then
             local diveDirection = rootPart.CFrame.LookVector

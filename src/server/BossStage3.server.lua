@@ -16,7 +16,7 @@ local spawnSpot = workspace:WaitForChild("Portal2"):WaitForChild("playerspot")
 -- ============================================================
 local STAGE3_HITS_REQUIRED  = 2
 local CHASE_SPEED           = 15   -- how fast boss walks toward player
-local SLASH_DAMAGE          = 5
+local SLASH_DAMAGE          = 10
 local SLASH_RANGE           = 3    -- studs to trigger slash
 local SLASH_COOLDOWN        = 10    -- seconds between slashes
 local TELEPORT_CHANCE       = 0.009 -- chance each heartbeat to teleport
