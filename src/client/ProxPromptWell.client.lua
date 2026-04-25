@@ -1,3 +1,6 @@
+local levelsCompleted = 0
+local bossUnlocked = false
+-- local ServerScriptService = game:GetService("ServerScriptService")
 
 local StarterGui = game:GetService("StarterGui")
 local TweenService = game:GetService("TweenService")
@@ -230,6 +233,29 @@ local function petdisplay(petName, weight)
 		showHotbar:Fire()
 	end)
 end
+local function getRarityFromWeight(weight)
+
+    if weight == 0.9 then
+        return "Common"
+
+    elseif weight == 0.7 or weight == 0.71 then
+        return "Uncommon"
+
+    elseif weight == 0.3 then
+        return "Rare"
+
+    elseif weight == 0.05 then
+        return "Epic"
+
+    elseif weight == 0.001 then
+        return "Legendary"
+
+    else
+        warn("Unknown rarity weight:", weight)
+        return "Common"
+    end
+
+end
 -- Pet display positions
 local petLocations = {
 	["sadpet1"] = {position = Vector3.new(49, 4, -46), rotation = Vector3.new(0, -180, 0)},
@@ -306,7 +332,17 @@ local function fadePartOrModel(partOrModel, targetTransparency, tweenTime)
 
     tweenProps.Completed:Wait()
 end
+local function unlockBossPortal()
 
+    local portal = workspace:WaitForChild("BossPortal")
+
+    portal.CanTouch = true
+
+    portal.Transparency = 0
+
+    print("Boss portal unlocked!")
+
+end
 ProximityPrompt.Triggered:Connect(function(player)
     local character = player.Character or player.CharacterAdded:Wait()
     local humanoid = character:WaitForChild("Humanoid")
@@ -319,7 +355,10 @@ ProximityPrompt.Triggered:Connect(function(player)
 
     local Tool = player.Backpack:FindFirstChild("Coin") or player.Character:FindFirstChild("Coin")
     if Tool and Tool.Parent == player.Character then
-
+		-- if levelsCompleted >= 10 and not bossUnlocked then
+		-- 	bossUnlocked = true
+		-- 	unlockBossPortal()
+		-- end
         -- save EVERYTHING first before touching anything
         local prevRootCFrame = rootPart.CFrame
         local prevWalkSpeed = humanoid.WalkSpeed
@@ -391,9 +430,20 @@ ProximityPrompt.Triggered:Connect(function(player)
 		local selectedWeight = availablePets[selectedPet]  -- save weight first
 		availablePets[selectedPet] = nil                   -- now remove it
 		
+		local rarity = getRarityFromWeight(selectedWeight)
+
+		local spawnEvent = ReplicatedStorage:WaitForChild("SpawnLevelRequest")
+
+		spawnEvent:FireServer(rarity)
+
+		levelsCompleted += 1
+		
+		print("Levels completed:", levelsCompleted)
+
 		print("Selected pet:", selectedPet.Name)
 		print("Pets remaining:", petsRemaining - 1)
-		
+		print("Weight:", selectedWeight)
+		print("Rarity:", rarity)
 		local displayLocation = petLocations[selectedPet.Name]
 		
 -- save before cutscene

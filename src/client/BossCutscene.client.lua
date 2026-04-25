@@ -13,7 +13,15 @@ local character = player.Character or player.CharacterAdded:Wait()
 local humanoid = character:WaitForChild("Humanoid")
 local rootPart = character:WaitForChild("HumanoidRootPart")
 
-local boss = workspace:WaitForChild("Boss1x")
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+
+print("Waiting for BossLevel...")
+
+local bossLevel = SpawnedLevels:WaitForChild("BossLevel")
+
+print("BossLevel detected")
+
+local boss = bossLevel:WaitForChild("Boss1x")
 local bossRootPart = boss:WaitForChild("HumanoidRootPart")
 local bossHumanoid = boss:WaitForChild("Humanoid")
 local bossAnimator = bossHumanoid:WaitForChild("Animator")
@@ -24,7 +32,13 @@ local bossAnimator = bossHumanoid:WaitForChild("Animator")
 local DESCEND_ID    = "rbxassetid://101227097183351"
 local FLOAT_IDLE_ID = "rbxassetid://133632260307047"
 -- ============================================================
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
 
+print("Watching SpawnedLevels...")
+
+SpawnedLevels.ChildAdded:Connect(function(level)
+    print("Level spawned:", level.Name)
+end)
 -- ============================================================
 -- CONFIGURATION
 -- Cam 1-4: short pan shots (player looking around arena)
@@ -107,7 +121,7 @@ local function runCutscene()
 
     -- Switch to scriptable camera and snap to cam 1 BEFORE fading in
     camera.CameraType = Enum.CameraType.Scriptable
-    local firstCam = workspace:WaitForChild("1xCam1")
+    local firstCam = bossLevel:WaitForChild("1xCam1")
     camera.CFrame = firstCam.CFrame
 
     -- Now fade in to reveal the arena
@@ -117,7 +131,7 @@ local function runCutscene()
 
     -- Run through camera shots (skip snapping cam 1 since we already did it)
     for i, shot in ipairs(CAM_SHOTS) do
-        local camPart = workspace:WaitForChild(shot.part)
+        local camPart = bossLevel:WaitForChild(shot.part)
 
         if i == 1 then
             task.wait(shot.duration)  -- just wait on cam 1, already positioned
@@ -194,7 +208,7 @@ end
 -- ============================================================
 local portalparent = workspace:WaitForChild("Portal")
 local portal = portalparent:WaitForChild("Door")
-local portal2 = workspace:WaitForChild("Portal2")
+local portal2 = bossLevel:WaitForChild("Portal2")
 local spawnInArena = portal2:WaitForChild("playerspot")  -- teleport destination
 
 local triggered = false

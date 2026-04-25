@@ -1,5 +1,7 @@
 -- BossDialogue LocalScript
--- Place in StarterPlayerScripts
+
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+local bossLevel = SpawnedLevels:WaitForChild("BossLevel")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
@@ -73,7 +75,7 @@ hintLabel.Parent = frame
 -- ============================================================
 -- BOSS FACE SETUP
 -- ============================================================
-local boss = workspace:WaitForChild("Boss1x")
+local boss = bossLevel:WaitForChild("Boss1x")
 local bossHead = boss:WaitForChild("Head")
 local bossface = bossHead:WaitForChild("face")
 print("[BossDialogue] bossface found:", bossface)

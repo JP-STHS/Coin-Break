@@ -1,4 +1,7 @@
 
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+
+local bossLevel = SpawnedLevels:WaitForChild("BossLevel")
 local bladeAttackActive = false
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -6,11 +9,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 
-local boss = workspace:WaitForChild("Boss1x")
+local boss = bossLevel:WaitForChild("Boss1x")
 local bossHumanoid = boss:WaitForChild("Humanoid")
 local bossAnimator = bossHumanoid:WaitForChild("Animator")
 local bossRoot = boss:WaitForChild("HumanoidRootPart")
-local boundary = workspace:WaitForChild("1xBoundary")
+local boundary = bossLevel:WaitForChild("1xBoundary")
 local SwordController = ReplicatedStorage:WaitForChild("SwordController")
 
 local crystalTemplate = ServerStorage:WaitForChild("SmallCrystal")
