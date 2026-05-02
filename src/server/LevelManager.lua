@@ -1,6 +1,7 @@
 local ServerStorage = game:GetService("ServerStorage")
 
 local LevelsFolder = ServerStorage:WaitForChild("Levels")
+local BossLevel = LevelsFolder:WaitForChild("Boss")
 local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
 local LevelStartPoint = workspace:WaitForChild("LevelStartPoint")
 
@@ -11,28 +12,54 @@ math.randomseed(os.clock())
 -- coin stuff
 local CoinGiver = workspace:WaitForChild("CoinGiver")
 
+-- function LevelManager.GetRandomLevel(rarity)
+
+--     local rarityFolder = LevelsFolder:FindFirstChild(rarity)
+
+--     if not rarityFolder then
+--         warn("Rarity folder not found:", rarity)
+--         return nil
+--     end
+
+--     local levels = rarityFolder:GetChildren()
+
+--     if #levels == 0 then
+--         warn("No levels in rarity:", rarity)
+--         return nil
+--     end
+
+--     return levels[math.random(1, #levels)]
+
+-- end
 function LevelManager.GetRandomLevel(rarity)
+    local forcedLevel = LevelsFolder:FindFirstChild("Level19", true)
 
-    local rarityFolder = LevelsFolder:FindFirstChild(rarity)
-
-    if not rarityFolder then
-        warn("Rarity folder not found:", rarity)
+    if forcedLevel then
+        print("FORCING Level19 spawn")
+        return forcedLevel
+    else
+        warn("Level19 not found anywhere in LevelsFolder")
         return nil
     end
-
-    local levels = rarityFolder:GetChildren()
-
-    if #levels == 0 then
-        warn("No levels in rarity:", rarity)
-        return nil
-    end
-
-    return levels[math.random(1, #levels)]
-
 end
-
 function LevelManager.SpawnLevel(rarity)
+    
+    -- HANDLE BOSS PROPERLY
+    if rarity == "Boss" then
+        local bossTemplate = BossLevel:FindFirstChild("BossLevel")
 
+        if not bossTemplate then
+            warn("BossLevel not found in ServerStorage.Levels")
+            return
+        end
+
+        local bossLevel = bossTemplate:Clone()
+        bossLevel.Parent = SpawnedLevels
+
+        print("Boss level spawned")
+
+        return bossLevel -- IMPORTANT
+    end
     local levelTemplate = LevelManager.GetRandomLevel(rarity)
 
     if not levelTemplate then

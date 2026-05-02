@@ -1,9 +1,23 @@
+-- moved to server due to inf yield issues
 local Workspace = game:GetService("Workspace")
+
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+
+local Level18 = SpawnedLevels:FindFirstChild("Level18")
+
+while not Level18 do
+    local child = SpawnedLevels.ChildAdded:Wait()
+    
+    if child.Name == "Level18" then
+        Level18 = child
+    end
+end
+
+local cooldown = false
 local Players = game:GetService("Players")
 
-local firstpersonpart = Workspace:WaitForChild("firstperson")
+local firstpersonpart = Level18:WaitForChild("firstperson")
 local player = Players.LocalPlayer
-local camera = Workspace.CurrentCamera
 
 local function isInsidePart(position, part)
     local localPos = part.CFrame:PointToObjectSpace(position)

@@ -1,9 +1,13 @@
 
 local Workspace = game:GetService("Workspace")
+local ServerStorage = game:GetService("ServerStorage")
+local LevelsFolder = ServerStorage:WaitForChild("Levels")
+local EpicCategory = LevelsFolder:WaitForChild("Epic")
+local Level18 = EpicCategory:WaitForChild("Level18")
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 
-local entitymodel = Workspace:WaitForChild("Monster1")
+local entitymodel = Level18:WaitForChild("Monster1")
 local entity = entitymodel:WaitForChild("Monster")
 local entityHitbox = entitymodel:WaitForChild("MonsterHitbox")
 local entitymusic = entity:WaitForChild("EntityChase")
@@ -12,19 +16,19 @@ local originalCFrame = entity.CFrame -- save at the top before runEntity
 local glassbreak = entity:WaitForChild("GlassBreak")
 
 
-local safeZone = Workspace:WaitForChild("closet")
-local door = Workspace:WaitForChild("Door3")
+local safeZone = Level18:WaitForChild("closet")
+local door = Level18:WaitForChild("Door3")
 
 
 local waypoints = {
-    Workspace:WaitForChild("Waypoint1"),
-    Workspace:WaitForChild("Waypoint2"),
-    Workspace:WaitForChild("Waypoint3"),
-    Workspace:WaitForChild("Waypoint4"),
-    Workspace:WaitForChild("Waypoint5"),
-    Workspace:WaitForChild("Waypoint6"),
-    Workspace:WaitForChild("Waypoint7"),
-    Workspace:WaitForChild("Waypoint8")
+    Level18:WaitForChild("Waypoint1"),
+    Level18:WaitForChild("Waypoint2"),
+    Level18:WaitForChild("Waypoint3"),
+    Level18:WaitForChild("Waypoint4"),
+    Level18:WaitForChild("Waypoint5"),
+    Level18:WaitForChild("Waypoint6"),
+    Level18:WaitForChild("Waypoint7"),
+    Level18:WaitForChild("Waypoint8")
 }
 
 local SPEED = 30 -- studs per second, adjust to taste
@@ -54,7 +58,7 @@ local entitytime = false
 -- build lights table after a short wait to make sure everything is loaded
 task.wait(1)
 local lights = {}
-for _, v in pairs(Workspace:GetDescendants()) do
+for _, v in pairs(Level18:GetDescendants()) do
     if v:IsA("MeshPart") and v.Name:match("^light%d+") then
         table.insert(lights, v)
     end
@@ -114,7 +118,7 @@ local function runEntity()
     entitymusic:Stop()
     entity.CFrame = originalCFrame
 end
-local doorFrame3 = Workspace:WaitForChild("doorFrame3")
+local doorFrame3 = Level18:WaitForChild("doorFrame3")
 local doorFrame3Hinge = doorFrame3:WaitForChild("HingeConstraint")
 
 

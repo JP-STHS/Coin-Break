@@ -1,5 +1,23 @@
 -- BossStage2 Script
 -- Place in ServerScriptService
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+
+
+local bossLevel
+
+for _, level in ipairs(SpawnedLevels:GetChildren()) do
+    if level.Name == "BossLevel" then
+        bossLevel = level
+        break
+    end
+end
+
+-- Wait specifically for BossLevel
+if not bossLevel then
+    repeat
+        bossLevel = SpawnedLevels.ChildAdded:Wait()
+    until bossLevel.Name == "BossLevel"
+end
 
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -7,12 +25,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 
-local boss = workspace:WaitForChild("Boss1x")
+local boss = bossLevel:WaitForChild("Boss1x")
 local bossHumanoid = boss:WaitForChild("Humanoid")
 local bossAnimator = bossHumanoid:WaitForChild("Animator")
 local bossRoot = boss:WaitForChild("HumanoidRootPart")
-local boundary = workspace:WaitForChild("1xBoundary")
-local spawnSpot = workspace:WaitForChild("Portal2"):WaitForChild("playerspot")
+local boundary = bossLevel:WaitForChild("1xBoundary")
+local spawnSpot = bossLevel:WaitForChild("Portal2"):WaitForChild("playerspot")
 
 local smallCrystalTemplate = ServerStorage:WaitForChild("SmallCrystal")
 local largeCrystalTemplate = ServerStorage:WaitForChild("LargeCrystal")
@@ -353,7 +371,7 @@ local function doBladeAttack()
     bladeAttackActive = true
 
     -- Pause the sword controller so it doesn't fight the tween
-    local SwordController = ReplicatedStorage:WaitForChild("SwordController")
+    local SwordController = ServerStorage:WaitForChild("SwordController")
     SwordController:Invoke("pause")
 
     -- Stop idle, play signal
@@ -489,7 +507,7 @@ end
 -- ============================================================
 -- HIT TRACKING
 -- ============================================================
-local bossHitEvent = ReplicatedStorage:WaitForChild("BossHit")
+local bossHitEvent = ServerStorage:WaitForChild("BossHit")
 
 bossHitEvent.Event:Connect(function(player)
     if not stage2Active or stage2Done then return end
@@ -503,7 +521,7 @@ bossHitEvent.Event:Connect(function(player)
         stopRetreat()
         bossRoot.Anchored = true
         print("Stage 2 complete!")
-        local stage3Event = ReplicatedStorage:WaitForChild("StartStage3")
+        local stage3Event = ServerStorage:WaitForChild("StartStage3")
         stage3Event:Fire()
     end
 end)
@@ -584,7 +602,7 @@ local function startStage2()
     print("Stage 2 started!")
 end
 
-local stage2Event = ReplicatedStorage:WaitForChild("StartStage2")
+local stage2Event = ServerStorage:WaitForChild("StartStage2")
 stage2Event.Event:Connect(function()
     task.wait(0.5)
     startStage2()
@@ -592,4 +610,4 @@ end)
 
 local stage3Event = Instance.new("BindableEvent")
 stage3Event.Name = "StartStage3"
-stage3Event.Parent = ReplicatedStorage
+stage3Event.Parent = ServerStorage

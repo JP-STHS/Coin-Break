@@ -1,7 +1,26 @@
 
 local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+print("Waiting for BossLevel...")
 
-local bossLevel = SpawnedLevels:WaitForChild("BossLevel")
+local bossLevel
+
+-- Check if already exists
+for _, level in ipairs(SpawnedLevels:GetChildren()) do
+    if level.Name == "BossLevel" then
+        bossLevel = level
+        break
+    end
+end
+
+-- Wait specifically for BossLevel
+if not bossLevel then
+    repeat
+        bossLevel = SpawnedLevels.ChildAdded:Wait()
+    until bossLevel.Name == "BossLevel"
+end
+
+print("BossLevel detected")
+
 local bladeAttackActive = false
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
@@ -14,7 +33,7 @@ local bossHumanoid = boss:WaitForChild("Humanoid")
 local bossAnimator = bossHumanoid:WaitForChild("Animator")
 local bossRoot = boss:WaitForChild("HumanoidRootPart")
 local boundary = bossLevel:WaitForChild("1xBoundary")
-local SwordController = ReplicatedStorage:WaitForChild("SwordController")
+local SwordController = ServerStorage:WaitForChild("SwordController")
 
 local crystalTemplate = ServerStorage:WaitForChild("SmallCrystal")
 -- no letting boss die off early
@@ -397,7 +416,13 @@ end
 -- ============================================================
 -- HIT TRACKING
 -- ============================================================
-local bossHitEvent = ReplicatedStorage:WaitForChild("BossHit")
+local bossHitEvent = ServerStorage:FindFirstChild("BossHit")
+
+if not bossHitEvent then
+    bossHitEvent = Instance.new("BindableEvent")
+    bossHitEvent.Name = "BossHit"
+    bossHitEvent.Parent = ServerStorage
+end
 local bosshitaudio = boss:WaitForChild("Impact")
 bossHitEvent.Event:Connect(function(player)
     if not stage1Active or stage1Done then return end
@@ -412,7 +437,7 @@ bossHitEvent.Event:Connect(function(player)
         print("Stage 1 complete!")
 
         -- Fire stage 2 start event
-        local stage2Event = ReplicatedStorage:WaitForChild("StartStage2")
+        local stage2Event = ServerStorage:WaitForChild("StartStage2")
         stage2Event:Fire()
     end
 end)
@@ -433,9 +458,7 @@ local function startStage1()
     print("Stage 1 started!")
 end
 
-local cutsceneDone = Instance.new("RemoteEvent")
-cutsceneDone.Name = "CutsceneDone"
-cutsceneDone.Parent = ReplicatedStorage
+local cutsceneDone = ReplicatedStorage:WaitForChild("CutsceneDone")
 
 cutsceneDone.OnServerEvent:Connect(function(player)
     print("CutsceneDone received from", player.Name)
@@ -446,4 +469,4 @@ end)
 -- Create stage 2 start event for later
 local stage2Event = Instance.new("BindableEvent")
 stage2Event.Name = "StartStage2"
-stage2Event.Parent = ReplicatedStorage
+stage2Event.Parent = ServerStorage

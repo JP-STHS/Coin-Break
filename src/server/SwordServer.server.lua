@@ -1,16 +1,47 @@
 -- SwordServer (Script in ServerScriptService)
+
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local ServerStorage = game:GetService("ServerStorage")
 
 -- Create the event on the server so it exists before the client looks for it
 local swingEvent = Instance.new("RemoteEvent")
 swingEvent.Name = "SwordSwing"
 swingEvent.Parent = ReplicatedStorage
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
 
-local boss = workspace:WaitForChild("Boss1x")
+print("Waiting for BossLevel...")
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+print("Waiting for BossLevel...")
+
+local bossLevel
+
+-- Check if already exists
+for _, level in ipairs(SpawnedLevels:GetChildren()) do
+    if level.Name == "BossLevel" then
+        bossLevel = level
+        break
+    end
+end
+
+-- Wait specifically for BossLevel
+if not bossLevel then
+    repeat
+        bossLevel = SpawnedLevels.ChildAdded:Wait()
+    until bossLevel.Name == "BossLevel"
+end
+print("BossLevel detected")
+
+local boss = bossLevel:WaitForChild("Boss1x")
 local bossHumanoid = boss:WaitForChild("Humanoid")
 local bossRootPart = boss:WaitForChild("HumanoidRootPart")
 
+print("Boss locked:", boss:GetFullName())
+print("Tracking boss at:", bossRootPart.Position)
+swingEvent.OnServerEvent:Connect(function(player)
+    print("[SwordServer]Swing event received from", player.Name)
+end)
 -- ============================================================
 -- CONFIGURATION
 -- ============================================================
@@ -27,7 +58,7 @@ HitTracker.__index = HitTracker
 -- BindableEvent so the boss fight script can listen for hits
 local bossHitEvent = Instance.new("BindableEvent")
 bossHitEvent.Name = "BossHit"
-bossHitEvent.Parent = ReplicatedStorage
+bossHitEvent.Parent = ServerStorage
 
 local lastHitTime = {}  -- per player cooldown
 
@@ -46,8 +77,12 @@ swingEvent.OnServerEvent:Connect(function(player)
     if not root then return end
 
     local dist = (root.Position - bossRootPart.Position).Magnitude
+
+    print("[SwordServer]Distance to boss:", dist)
+
     if dist > SWORD_REACH then
-        return  -- too far away
+        print("[SwordServer]Too far to hit")
+        return
     end
 
     -- Check boss is still alive

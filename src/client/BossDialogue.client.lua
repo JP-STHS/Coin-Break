@@ -1,7 +1,26 @@
 -- BossDialogue LocalScript
 
 local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
-local bossLevel = SpawnedLevels:WaitForChild("BossLevel")
+print("Waiting for BossLevel...")
+
+local bossLevel
+
+-- Check if already exists
+for _, level in ipairs(SpawnedLevels:GetChildren()) do
+    if level.Name == "BossLevel" then
+        bossLevel = level
+        break
+    end
+end
+
+-- Wait specifically for BossLevel
+if not bossLevel then
+    repeat
+        bossLevel = SpawnedLevels.ChildAdded:Wait()
+    until bossLevel.Name == "BossLevel"
+end
+
+print("BossLevel detected")
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")

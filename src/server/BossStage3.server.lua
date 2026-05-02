@@ -5,12 +5,34 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerStorage = game:GetService("ServerStorage")
 
-local boss = workspace:WaitForChild("Boss1x")
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+
+print("Waiting for BossLevel...")
+
+local bossLevel
+
+for _, level in ipairs(SpawnedLevels:GetChildren()) do
+    if level.Name == "BossLevel" then
+        bossLevel = level
+        break
+    end
+end
+
+-- Wait specifically for BossLevel
+if not bossLevel then
+    repeat
+        bossLevel = SpawnedLevels.ChildAdded:Wait()
+    until bossLevel.Name == "BossLevel"
+end
+
+print("BossLevel detected")
+
+local boss = bossLevel:WaitForChild("Boss1x")
 local bossHumanoid = boss:WaitForChild("Humanoid")
 local bossAnimator = bossHumanoid:WaitForChild("Animator")
 local bossRoot = boss:WaitForChild("HumanoidRootPart")
-local boundary = workspace:WaitForChild("1xBoundary")
-local spawnSpot = workspace:WaitForChild("Portal2"):WaitForChild("playerspot")
+local boundary = bossLevel:WaitForChild("1xBoundary")
+local spawnSpot = bossLevel:WaitForChild("Portal2"):WaitForChild("playerspot")
 -- ============================================================
 -- CONFIGURATION
 -- ============================================================
@@ -66,7 +88,7 @@ local teleporting    = false
 local lastSlashTime  = 0
 local chaseConnection = nil
 
-local SwordController = ReplicatedStorage:WaitForChild("SwordController")
+local SwordController = ServerStorage:WaitForChild("SwordController")
 
 -- ============================================================
 -- HELPERS
@@ -384,7 +406,7 @@ end
 -- ============================================================
 -- HIT TRACKING
 -- ============================================================
-local bossHitEvent = ReplicatedStorage:WaitForChild("BossHit")
+local bossHitEvent = ServerStorage:WaitForChild("BossHit")
 local audiophase4 = boss:WaitForChild("1xDeath")
 
 bossHitEvent.Event:Connect(function(player)
@@ -493,7 +515,7 @@ local function startStage3()
 end
 
 -- Listen for stage 3 start
-local stage3Event = ReplicatedStorage:WaitForChild("StartStage3")
+local stage3Event = ServerStorage:WaitForChild("StartStage3")
 stage3Event.Event:Connect(function()
     task.wait(0.5)
     startStage3()
@@ -502,4 +524,4 @@ end)
 -- Create defeated event for end screen
 local defeatedEvent = Instance.new("RemoteEvent")
 defeatedEvent.Name = "BossDefeated"
-defeatedEvent.Parent = ReplicatedStorage
+defeatedEvent.Parent = ServerStorage

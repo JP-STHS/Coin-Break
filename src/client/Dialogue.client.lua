@@ -6,7 +6,22 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 local workspace = game:GetService("Workspace")
 
-local npc = workspace:WaitForChild("Ghost")
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+
+local Level19 = SpawnedLevels:FindFirstChild("Level19")
+
+while not Level19 do
+    local child = SpawnedLevels.ChildAdded:Wait()
+    
+    if child.Name == "Level19" then
+        Level19 = child
+    end
+end
+local cooldown = false
+
+local CoinSpot = workspace:WaitForChild("CoinGiver")
+CoinSpot.CanTouch = false  -- disable until quest complete
+local npc = Level19:WaitForChild("Ghost")
 local mesh = npc:WaitForChild("GhostModel")
 local dialogueSoundGhost = Instance.new("Sound")
 dialogueSoundGhost.SoundId = "rbxassetid://135414832513483"
@@ -29,13 +44,14 @@ local minigameEvent = Instance.new("BindableEvent")
 minigameEvent.Name  = "MinigameDone"
 minigameEvent.Parent = game.ReplicatedStorage  -- other scripts can find it here
 local ingredientsEvent = game.ReplicatedStorage:WaitForChild("IngredientsCollected")
-ingredientsEvent.Event:Connect(function(firedPlayer)
-    if firedPlayer == player then
-        Quest.hasIngredients = true
-    end
+ingredientsEvent.OnClientEvent:Connect(function()
+    -- if firedPlayer == player then
+    Quest.hasIngredients = true
+    print("Ingredients collected, quest updated")
+    -- end
 end)
 -- Wire secret sauce pickup
-local hotSauce = workspace:WaitForChild("HotSauce")
+local hotSauce = Level19:WaitForChild("HotSauce")
 local saucePrompt = hotSauce:WaitForChild("ProximityPrompt")
 
 -- Hide the prompt until the minigame is done
@@ -57,7 +73,7 @@ end)
 -- ============================================================
 
 local TALK_SPEED       = 0.05
-local TRIGGER_DISTANCE = 5
+local TRIGGER_DISTANCE = 3
 
 -- Random idle lines shown after quest is complete
 local IDLE_LINES = {
@@ -294,10 +310,14 @@ local function getQuestLines()
 
     elseif Quest.hasSauce and not Quest.questComplete then
         Quest.questComplete = true
+        CoinSpot.CanTouch = true  -- enable the coin pickup
         return {
             "Alright, that's everything. Thanks again dude.",
             "Your coin is up ahead.",
-        }, function() closeDialogue() end
+
+        },
+        
+         function() closeDialogue() end
 
     elseif Quest.minigameDone and not Quest.hasSauce then
         return {
@@ -307,17 +327,23 @@ local function getQuestLines()
         }, function() closeDialogue() end
 
     elseif Quest.hasIngredients and not Quest.minigameDone then
-        local Startbutton = workspace:WaitForChild("StartButton")
-        local cd = Instance.new("ClickDetector")
-        cd.MaxActivationDistance = 5
-        cd.Parent = Startbutton
         return {
             "Thanks, you got everything.",
             "I have a slight problem though...",
             "The power is out right now, and I can't cook this burger. Could you play that minigame over there to fix it?",
             "You need to get at least a B score to get the power running, no idea why though. Just try to keep the beat."
-        }, function() closeDialogue() end
+        }, function()
+            local Startbutton = Level19:WaitForChild("StartButton")
 
+            -- Prevent duplicate ClickDetectors
+            if not Startbutton:FindFirstChildOfClass("ClickDetector") then
+                local cd = Instance.new("ClickDetector")
+                cd.MaxActivationDistance = 5
+                cd.Parent = Startbutton
+            end
+
+            closeDialogue()
+        end
     elseif Quest.accepted and not Quest.hasIngredients then
         return {
             "Did you forget the ingredients? It's a bun, a patty, and some lettuce.",
@@ -344,11 +370,11 @@ end
 -- ============================================================
 -- YES / NO HANDLERS
 -- ============================================================
-local bun1 = workspace:WaitForChild("Bun")
+local bun1 = Level19:WaitForChild("Bun")
 local bunprox1 = bun1:WaitForChild("ProximityPrompt")
-local lettuce1 = workspace:WaitForChild("Lettuce")
+local lettuce1 = Level19:WaitForChild("Lettuce")
 local lettuceprox1 = lettuce1:WaitForChild("ProximityPrompt")
-local meat1 = workspace:WaitForChild("Meat")
+local meat1 = Level19:WaitForChild("Meat")
 local meat1prox = meat1:WaitForChild("ProximityPrompt")
 yesBtn.MouseButton1Click:Connect(function()
     if not choicePending then return end

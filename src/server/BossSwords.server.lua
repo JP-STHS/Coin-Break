@@ -1,5 +1,29 @@
+local ServerStorage = game:GetService("ServerStorage")
 local workspace = game:GetService("Workspace")
-local boss = workspace:WaitForChild("Boss1x")
+
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+print("Waiting for BossLevel...")
+
+local bossLevel
+
+-- Check if already exists
+for _, level in ipairs(SpawnedLevels:GetChildren()) do
+    if level.Name == "BossLevel" then
+        bossLevel = level
+        break
+    end
+end
+
+-- Wait specifically for BossLevel
+if not bossLevel then
+    repeat
+        bossLevel = SpawnedLevels.ChildAdded:Wait()
+    until bossLevel.Name == "BossLevel"
+end
+
+print("BossLevel detected")
+
+local boss = bossLevel:WaitForChild("Boss1x")
 local rootPart = boss:WaitForChild("HumanoidRootPart")
 local sword1 = boss:WaitForChild("Sword1")
 local sword2 = boss:WaitForChild("Sword2")
@@ -167,7 +191,7 @@ SwordController.setFloating()
 local rs = game:GetService("ReplicatedStorage")
 local swordModule = Instance.new("BindableFunction")
 swordModule.Name = "SwordController"
-swordModule.Parent = rs
+swordModule.Parent = ServerStorage
 
 swordModule.OnInvoke = function(mode)
 
