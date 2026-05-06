@@ -21,12 +21,14 @@ local cooldown = false
 
 local CoinSpot = workspace:WaitForChild("CoinGiver")
 CoinSpot.CanTouch = false  -- disable until quest complete
+CoinSpot.visible = false  -- hide the part itself, we'll use a decal or something on the ground instead
 local npc = Level19:WaitForChild("Ghost")
 local mesh = npc:WaitForChild("GhostModel")
 local dialogueSoundGhost = Instance.new("Sound")
 dialogueSoundGhost.SoundId = "rbxassetid://135414832513483"
 dialogueSoundGhost.Volume = 1.5
 dialogueSoundGhost.Parent = npc
+dialogueSoundGhost.PlaybackSpeed = 3
 -- ============================================================
 -- QUEST FLAGS — set these from your other scripts when things happen
 -- ============================================================
@@ -73,7 +75,7 @@ end)
 -- ============================================================
 
 local TALK_SPEED       = 0.05
-local TRIGGER_DISTANCE = 3
+local TRIGGER_DISTANCE = 10
 
 -- Random idle lines shown after quest is complete
 local IDLE_LINES = {
@@ -195,33 +197,7 @@ end
 local yesBtn = makeChoiceButton("erm ok", 0.15, Color3.fromRGB(28, 75, 39))
 local noBtn  = makeChoiceButton("lol nah", 0.85, Color3.fromRGB(85, 35, 35))
 
--- ============================================================
--- TYPEWRITER
--- ============================================================
-local typing = false
-local skipTyping = false
 
-local function typeWrite(text)
-    typing = true
-    skipTyping = false
-    textLabel.Text = ""
-    for i = 1, #text do
-        if skipTyping then
-            textLabel.Text = text
-            break
-        end
-        textLabel.Text = string.sub(text, 1, i)
-        -- only play on non-space characters so spaces don't trigger a sound
-        if string.sub(text, i, i) ~= " " then
-            dialogueSoundGhost:Stop()
-            dialogueSoundGhost.TimePosition = 0.1
-            dialogueSoundGhost:Play()
-        end
-        task.wait(TALK_SPEED)
-    end
-    dialogueSoundGhost:Stop()
-    typing = false
-end
 
 -- ============================================================
 -- DIALOGUE STATE MACHINE
@@ -249,8 +225,43 @@ local function closeDialogue()
     dialogueOpen  = false
     choicePending = false
     frame.Visible = false
+    dialogueSoundGhost:Stop()
     hideChoiceButtons()
 end
+-- ============================================================
+-- TYPEWRITER
+-- ============================================================
+local typing = false
+local skipTyping = false
+
+local function typeWrite(text)
+    typing = true
+    skipTyping = false
+    textLabel.Text = ""
+    for i = 1, #text do
+        -- Stop everything if the player closed the dialogue by walking away
+        if not dialogueOpen then 
+            typing = false
+            return 
+        end
+
+        if skipTyping then
+            textLabel.Text = text
+            break
+        end
+        textLabel.Text = string.sub(text, 1, i)
+        
+        if string.sub(text, i, i) ~= " " then
+            dialogueSoundGhost:Stop()
+            dialogueSoundGhost.TimePosition = 0.1
+            dialogueSoundGhost:Play()
+        end
+        task.wait(TALK_SPEED)
+    end
+    dialogueSoundGhost:Stop()
+    typing = false
+end
+
 
 local function playLines(lines, onFinish)
     currentLines = lines
@@ -311,6 +322,7 @@ local function getQuestLines()
     elseif Quest.hasSauce and not Quest.questComplete then
         Quest.questComplete = true
         CoinSpot.CanTouch = true  -- enable the coin pickup
+        CoinSpot.visible = true  -- make the coin spot visible
         return {
             "Alright, that's everything. Thanks again dude.",
             "Your coin is up ahead.",
@@ -331,7 +343,7 @@ local function getQuestLines()
             "Thanks, you got everything.",
             "I have a slight problem though...",
             "The power is out right now, and I can't cook this burger. Could you play that minigame over there to fix it?",
-            "You need to get at least a B score to get the power running, no idea why though. Just try to keep the beat."
+            "You need to get at least a \"B\" score to get the power running, no idea why though. Just try to keep the beat."
         }, function()
             local Startbutton = Level19:WaitForChild("StartButton")
 

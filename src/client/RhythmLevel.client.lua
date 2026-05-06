@@ -1,338 +1,237 @@
--- RhythmGame LocalScript (Two tracks + mobile support)
--- Place in StarterPlayerScripts
-
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
-local workspace = game:GetService("Workspace")
+local playerGui = player:WaitForChild("PlayerGui")
 
+local workspace = game:GetService("Workspace")
 local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
 
 SpawnedLevels.ChildAdded:Connect(function(level)
     if level.Name ~= "Level19" then return end
-
-    print("Level19 spawned!")
-
-    local cooldown = false
-    local cooldown = false
-
+    
     -- ============================================================
-    -- CONFIGURATION
+    -- 🥁 SONG CONFIGURATION
     -- ============================================================
-    local HIT_WINDOW  = 0.25
-    local NOTE_TRAVEL = 6.0
-
-    local HIT_COLOR  = Color3.fromRGB(50, 255, 100)
-    local MISS_COLOR = Color3.fromRGB(255, 50, 50)
-    local IDLE_COLOR = Color3.fromRGB(255, 255, 255)
-
-    local BPM         = 144
-    local interval    = 60 / BPM
-    local startOffset = 0.5
-    local SONG_DURATION = 30
-
-    -- E track beats
-    local beatsE = {}
-    local beatsQ = {}
-    for i = 0, math.floor((SONG_DURATION - startOffset) / interval) do
-        local beatTime = startOffset + (i * interval)
-        if i % 2 == 0 then
-            table.insert(beatsE, beatTime)
-        else
-            table.insert(beatsQ, beatTime)
-        end
-    end
-
-
-
-    -- Note colors per track
-    local TRACK_COLOR = {
-        E = Color3.fromRGB(12, 182, 89),   -- yellow
-        Q = Color3.fromRGB(100, 180, 255),  -- blue
+    local SONG_DATA = {
+        {0.789, 'Q'}, {1.216, 'Q'}, {1.621, 'Q'}, {2.027, 'Q'}, {2.453, 'Q'},
+        {2.859, 'Q'}, {3.285, 'Q'}, {3.712, 'Q'}, {4.096, 'Q'}, {4.587, 'Q'},
+        {4.929, 'Q'}, {5.334, 'Q'}, {5.782, 'E'}, {6.166, 'Q'}, {6.593, 'E'},
+        {7.019, 'Q'}, {7.425, 'E'}, {7.659, 'Q'}, {7.83, 'E'}, {8.278, 'Q'},
+        {8.683, 'E'}, {9.11, 'Q'}, {9.537, 'E'}, {9.942, 'Q'}, {10.347, 'E'},
+        {10.795, 'Q'}, {11.158, 'E'}, {11.606, 'Q'}, {11.99, 'E'}, {12.459, 'Q'},
+        {12.737, 'Q'}, {13.035, 'Q'}, {13.313, 'E'}, {13.739, 'Q'}, {14.187, 'Q'},
+        {14.358, 'E'}, {14.55, 'Q'}, {14.977, 'Q'}, {15.254, 'E'}, {15.425, 'Q'},
+        {15.873, 'Q'}, {16.235, 'E'}, {16.662, 'Q'}, {16.833, 'E'}, {17.046, 'Q'},
+        {17.473, 'Q'}, {17.686, 'E'}, {17.857, 'Q'}, {18.07, 'E'}, {18.305, 'Q'},
+        {18.518, 'E'}, {18.731, 'Q'}, {18.881, 'E'}, {19.115, 'Q'}, {19.457, 'Q'},
+        {19.713, 'Q'}, {19.926, 'E'}, {20.353, 'Q'}, {20.779, 'E'}, {21.249, 'Q'},
+        {21.633, 'E'}, {22.081, 'Q'}, {22.422, 'E'}, {22.891, 'Q'}, {23.297, 'E'},
+        {23.702, 'Q'}, {24.107, 'E'}, {24.534, 'E'}, {24.961, 'E'}, {25.366, 'E'},
+        {25.814, 'Q'}, {26.241, 'Q'}, {26.646, 'Q'}, {27.073, 'Q'}, {27.478, 'Q'},
+        {27.862, 'E'}, {28.289, 'Q'}, {28.673, 'E'}, {29.099, 'Q'}, {29.505, 'E'}
     }
+
+    local NOTE_SPEED = 2.0   
+    local HIT_WINDOW = 0.3  
+    local SONG_DURATION = 31 
+    local CHART_OFFSET = 0.15 
     -- ============================================================
 
-    local hitZoneE   = level:WaitForChild("HitZoneE")
-    local hitZoneQ   = level:WaitForChild("HitZoneQ")
-    local spawnE     = level:WaitForChild("SpawnPointE")
-    local spawnQ     = level:WaitForChild("SpawnPointQ")
     local startButton = level:WaitForChild("StartButton")
-    local sound       = startButton:WaitForChild("Sound")
-
-    local gameActive    = false
-    local songStartTime = 0
-    local activeNotes   = { E = {}, Q = {} }
+    local sound = startButton:WaitForChild("Sound")
+    local gameActive = false
+    local canStart = true -- Logic to lock the ClickDetector
     local score = 0
-    local totalNotes = 0
-    -- -------------------------------------------------------
-    -- Mobile GUI buttons
-    -- -------------------------------------------------------
-    local screenGui = Instance.new("ScreenGui")
-    screenGui.ResetOnSpawn = false
-    screenGui.Parent = player.PlayerGui
+    local misses = 0 -- Spam penalty counter
+    local startTime = 0
+    local activeNotes = {}
 
-    local function makeMobileButton(text, xPos, color)
+    -- ============================================================
+    -- GUI SETUP
+    -- ============================================================
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "TaikoGui"
+    screenGui.ResetOnSpawn = false
+    screenGui.Enabled = false
+    screenGui.Parent = playerGui
+
+    local trackFrame = Instance.new("Frame")
+    trackFrame.Size = UDim2.new(0.8, 0, 0, 100)
+    trackFrame.Position = UDim2.new(0.5, 0, 0.35, 0)
+    trackFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    trackFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    trackFrame.BorderSizePixel = 0
+    trackFrame.Parent = screenGui
+    Instance.new("UICorner", trackFrame).CornerRadius = UDim.new(0.2, 0)
+
+    -- Indicators
+    local function makeLabel(txt, color, xPos)
+        local l = Instance.new("TextLabel")
+        l.Text = txt; l.TextColor3 = color; l.BackgroundTransparency = 1
+        l.Position = UDim2.new(xPos, 0, 0, -35); l.Size = UDim2.new(0, 100, 0, 20)
+        l.FontFace = Font.new("rbxassetid://12187371840", Enum.FontWeight.Bold)
+        l.Parent = trackFrame
+    end
+    makeLabel("Q - RED", Color3.fromRGB(235, 64, 52), 0.1)
+    makeLabel("E - BLUE", Color3.fromRGB(52, 183, 235), 0.3)
+
+    local target = Instance.new("Frame")
+    target.Size = UDim2.new(0, 80, 0, 80)
+    target.Position = UDim2.new(0, 0, 0.5, 0)
+    target.AnchorPoint = Vector2.new(0.5, 0.5)
+    target.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    target.BackgroundTransparency = 0.7
+    target.ZIndex = 2
+    target.Parent = trackFrame
+    Instance.new("UICorner", target).CornerRadius = UDim.new(1, 0)
+
+    -- Rounded Result Overlay
+    local resultFrame = Instance.new("Frame")
+    resultFrame.Size = UDim2.new(0, 400, 0, 200)
+    resultFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    resultFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    resultFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    resultFrame.BackgroundTransparency = 0.1
+    resultFrame.BorderSizePixel = 0
+    resultFrame.Visible = false
+    resultFrame.Parent = screenGui
+    Instance.new("UICorner", resultFrame).CornerRadius = UDim.new(0.1, 0)
+    local frameStroke = Instance.new("UIStroke", resultFrame)
+    frameStroke.Color = Color3.fromRGB(206, 100, 13)
+    frameStroke.Thickness = 3
+
+    local resultText = Instance.new("TextLabel")
+    resultText.Size = UDim2.new(0.9, 0, 0.8, 0)
+    resultText.Position = UDim2.new(0.5, 0, 0.5, 0)
+    resultText.AnchorPoint = Vector2.new(0.5, 0.5)
+    resultText.BackgroundTransparency = 1; resultText.TextColor3 = Color3.new(1,1,1)
+    resultText.FontFace = Font.new("rbxassetid://12187371840", Enum.FontWeight.Bold)
+    resultText.TextScaled = true; resultText.Parent = resultFrame
+
+    -- Mobile Buttons
+    local function createBtn(name, color, xPos, key)
         local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0, 100, 0, 100)
-        btn.Position = UDim2.new(xPos, 0, 0.75, 0)
-        btn.AnchorPoint = Vector2.new(0.5, 0.5)
-        btn.BackgroundColor3 = color
-        btn.Text = text
-        btn.TextScaled = true
-        btn.FontFace = Font.new("rbxassetid://12187371840")
-        btn.TextColor3 = Color3.fromRGB(0, 0, 0)
-        btn.Parent = screenGui
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0.3, 0)
-        corner.Parent = btn
+        btn.Size = UDim2.new(0, 130, 0, 130); btn.Position = UDim2.new(xPos, 0, 0.75, 0)
+        btn.AnchorPoint = Vector2.new(0.5, 0.5); btn.BackgroundColor3 = color
+        btn.Text = name .. "\n(" .. key .. ")"; btn.TextColor3 = Color3.new(1, 1, 1)
+        btn.TextScaled = true; btn.Parent = screenGui; Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
         return btn
     end
+    local btnQ = createBtn("RED", Color3.fromRGB(235, 64, 52), 0.35, "Q")
+    local btnE = createBtn("BLUE", Color3.fromRGB(52, 183, 235), 0.65, "E")
+    if not UserInputService.TouchEnabled then btnQ.Visible = false; btnE.Visible = false end
 
-    local isMobile = UserInputService.TouchEnabled
+    -- ============================================================
+    -- GAME LOGIC
+    -- ============================================================
+    local function spawnNote(noteType, hitTime)
+        local note = Instance.new("Frame")
+        note.Size = UDim2.new(0, 75, 0, 75); note.AnchorPoint = Vector2.new(0.5, 0.5)
+        note.Position = UDim2.new(1.15, 0, 0.5, 0)
+        note.BackgroundColor3 = (noteType == "Q") and Color3.fromRGB(235, 64, 52) or Color3.fromRGB(52, 183, 235)
+        Instance.new("UICorner", note).CornerRadius = UDim.new(1, 0)
+        note.Parent = trackFrame
 
-    local btnE, btnQ
-    if isMobile then
-        btnE = makeMobileButton("E", 0.6, Color3.fromRGB(12, 206, 77))
-        btnQ = makeMobileButton("Q", 0.4, Color3.fromRGB(100, 180, 255))
-        btnE.Visible = false
-        btnQ.Visible = false
-    end
-    -- -------------------------------------------------------
-    -- Helpers
-    -- -------------------------------------------------------
-    local function flashZone(hitZone, color)
-        hitZone.Color = color
-        task.delay(0.15, function()
-            hitZone.Color = IDLE_COLOR
+        local noteData = {Gui = note, Type = noteType, HitTime = hitTime, Hit = false}
+        table.insert(activeNotes, noteData)
+
+        local t = TweenService:Create(note, TweenInfo.new(NOTE_SPEED, Enum.EasingStyle.Linear), {
+            Position = UDim2.new(-0.15, 0, 0.5, 0)
+        })
+        t:Play()
+
+        task.delay(NOTE_SPEED + 0.5, function()
+            if note then note:Destroy() end
+            local idx = table.find(activeNotes, noteData)
+            if idx then table.remove(activeNotes, idx) end
         end)
     end
 
-    local function spawnNote(beatTime, track)
-        local spawnPart = track == "E" and spawnE or spawnQ
-        local hitZone   = track == "E" and hitZoneE or hitZoneQ
-
-        local note = Instance.new("Part")
-        note.Size       = Vector3.new(1, 0.5, 1)
-        note.Color      = TRACK_COLOR[track]
-        note.Material   = Enum.Material.ForceField 
-        note.Anchored   = true
-        note.CanCollide = false
-        note.Position   = spawnPart.Position
-        note.Parent     = workspace
-
-        local tween = TweenService:Create(
-            note,
-            TweenInfo.new(NOTE_TRAVEL, Enum.EasingStyle.Linear),
-            {Position = hitZone.Position}
-        )
-        tween:Play()
-
-        local noteData = {part = note, expectedTime = beatTime, hit = false}
-        table.insert(activeNotes[track], noteData)
-
-        task.delay(NOTE_TRAVEL + 0.3, function()
-            if not noteData.hit then
-                flashZone(hitZone, MISS_COLOR)
-            end
-            note:Destroy()
-            for i, n in ipairs(activeNotes[track]) do
-                if n == noteData then
-                    table.remove(activeNotes[track], i)
-                    break
-                end
-            end
-        end)
-    end
-
-    -- -------------------------------------------------------
-    -- Hit logic
-    -- -------------------------------------------------------
-    local function tryHit(track)
+    local function tryHit(inputType)
         if not gameActive then return end
-        local hitZone = track == "E" and hitZoneE or hitZoneQ
-        local currentTime = os.clock() - songStartTime
+        local currentTime = os.clock() - startTime
+        local bestNote = nil
+        local minDiff = HIT_WINDOW
 
-        local bestNote, bestDist = nil, math.huge
-        for _, noteData in ipairs(activeNotes[track]) do
-            if not noteData.hit then
-                local dist = math.abs(currentTime - noteData.expectedTime)
-                if dist < bestDist then
-                    bestNote = noteData
-                    bestDist = dist
-                end
+        for _, nd in ipairs(activeNotes) do
+            local diff = math.abs((nd.HitTime + CHART_OFFSET) - currentTime)
+            if diff < minDiff and not nd.Hit then
+                bestNote = nd
+                minDiff = diff
             end
         end
 
-        if bestNote and bestDist <= HIT_WINDOW then
-            bestNote.hit = true
-            score = score + 1  -- add this line
-            bestNote.part.Color = HIT_COLOR
-            flashZone(hitZone, HIT_COLOR)
-            task.delay(0.1, function()
-                if bestNote.part then bestNote.part:Destroy() end
-            end)
-            print(string.format("HIT %s! (off by %.0fms)", track, bestDist * 1000))
+        if bestNote and bestNote.Type == inputType then
+            bestNote.Hit = true; score += 1
+            bestNote.Gui:Destroy() 
+            target.BackgroundColor3 = Color3.new(0, 1, 0)
         else
-            flashZone(hitZone, MISS_COLOR)
-            print("MISS " .. track)
+            -- SPAM PENALTY: Increment misses if no note is found or wrong key pressed
+            misses += 1 
+            target.BackgroundColor3 = Color3.new(1, 0, 0)
         end
+        task.delay(0.1, function() target.BackgroundColor3 = Color3.new(1, 1, 1); target.BackgroundTransparency = 0.7 end)
     end
-    totalNotes = #beatsE + #beatsQ
-    -- -------------------------------------------------------
-    -- Start the game
-    -- -------------------------------------------------------
-    local function showScoreScreen()
-        local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0, 300, 0, 200)
-        frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-        frame.AnchorPoint = Vector2.new(0.5, 0.5)
-        frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        frame.BorderSizePixel = 0
-        frame.Parent = screenGui
-        local frameStroke = Instance.new("UIStroke")
-        frameStroke.Color = Color3.fromRGB(206, 100, 13)
-        frameStroke.Thickness = 2
-        frameStroke.Parent = frame
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0.05, 0)
-        corner.Parent = frame
 
-        local label = Instance.new("TextLabel")
-        label.Size = UDim2.new(1, 0, 0.5, 0)
-        label.Position = UDim2.new(0, 0, 0.1, 0)
-        label.BackgroundTransparency = 1
-        label.TextColor3 = Color3.fromRGB(255, 255, 255)
-        label.TextScaled = true
-        label.FontFace = Font.new("rbxassetid://12187371840")
-        label.Text = string.format("Score: %d / %d", score, totalNotes)
-        label.Parent = frame
-
-        local percent = math.floor((score / math.max(totalNotes, 1)) * 100)
-        local grade, gradeColor
-        if percent == 100 then
-            grade, gradeColor = "S", Color3.fromRGB(255, 220, 50)
-        elseif percent >= 80 then
-            grade, gradeColor = "A", Color3.fromRGB(100, 255, 100)
-        elseif percent >= 60 then
-            grade, gradeColor = "B", Color3.fromRGB(100, 180, 255)
-        elseif percent >= 49 then
-            grade, gradeColor = "C", Color3.fromRGB(255, 165, 50)
-        else
-            grade, gradeColor = "F", Color3.fromRGB(255, 50, 50)
-        end
-
-        local gradeLabel = Instance.new("TextLabel")
-        gradeLabel.Size = UDim2.new(1, 0, 0.35, 0)
-        gradeLabel.Position = UDim2.new(0, 0, 0.5, 0)
-        gradeLabel.BackgroundTransparency = 1
-        gradeLabel.TextColor3 = gradeColor
-        gradeLabel.TextScaled = true
-        gradeLabel.FontFace = Font.new("rbxassetid://12187371840")
-        gradeLabel.Text = grade
-        gradeLabel.Parent = frame
-
-        -- Auto dismiss after 5 seconds
-        task.delay(5, function()
-            sound:Stop()
-            frame:Destroy()
-        end)
-    end
     local function startGame()
-        if gameActive then return end
-        gameActive    = true
-        songStartTime = os.clock()
-        activeNotes   = { E = {}, Q = {} }
+        if not canStart or gameActive then return end
+        gameActive = true
+        canStart = false -- Lock the button
+        score = 0
+        misses = 0 
+        activeNotes = {}
+        resultFrame.Visible = false; screenGui.Enabled = true
+        
+        sound.TimePosition = 0; sound:Play()
+        startTime = os.clock()
 
-        sound:Play()
-        if btnE then btnE.Visible = true end
-        if btnQ then btnQ.Visible = true end
-
-        for _, beatTime in ipairs(beatsE) do
-            local spawnDelay = math.max(0, beatTime - NOTE_TRAVEL)
-            task.delay(spawnDelay, function()
-                if gameActive then spawnNote(beatTime, "E") end
+        for _, data in ipairs(SONG_DATA) do
+            local spawnDelay = (data[1] + CHART_OFFSET) - NOTE_SPEED
+            task.delay(math.max(0, spawnDelay), function()
+                if gameActive then spawnNote(data[2], data[1]) end
             end)
         end
 
-        for _, beatTime in ipairs(beatsQ) do
-            local spawnDelay = math.max(0, beatTime - NOTE_TRAVEL)
-            task.delay(spawnDelay, function()
-                if gameActive then spawnNote(beatTime, "Q") end
-            end)
+        task.wait(SONG_DURATION)
+        gameActive = false; sound:Stop()
+        
+        -- Evaluation (Subtract misses from score for accuracy)
+        local rawAccuracy = (score - (misses * 0.5)) / #SONG_DATA -- Misses hurt your score!
+        local accuracy = math.clamp(rawAccuracy * 100, 0, 100)
+        
+        local grade = (accuracy >= 85 and "S") or (accuracy >= 70 and "A") or (accuracy >= 55 and "B") or "C"
+        
+        resultText.Text = "FINAL SCORE: " .. score .. "\nACCURACY: " .. math.floor(accuracy) .. "%\nGRADE: " .. grade
+        resultText.TextColor3 = (grade ~= "C") and Color3.new(0, 1, 0) or Color3.new(1, 0, 0)
+        resultFrame.Visible = true
+
+        if grade ~= "C" then
+            local ev = ReplicatedStorage:FindFirstChild("MinigameDone")
+            if ev then ev:Fire() end 
         end
+        
+        task.wait(4)
+        screenGui.Enabled = false
+        canStart = true -- Unlock the button for retries
+    end
 
-        task.delay(SONG_DURATION, function()
-            gameActive  = false
-            activeNotes = { E = {}, Q = {} }
-            if btnE then btnE.Visible = false end
-            if btnQ then btnQ.Visible = false end
-            showScoreScreen()
-            local percent = math.floor((score / math.max(totalNotes, 1)) * 100)
-            if percent >= 60 then
-                local event = game.ReplicatedStorage:FindFirstChild("MinigameDone")
-                if event then event:Fire() end
-            end
-
-            -- Wait for score screen to dismiss (5s) + cooldown (8s) before re-enabling
-            task.delay(5, function()
-                score = 0  -- reset after screen closes
-                task.delay(8, function()
-                    cooldown = false
-                    startButton.Color = Color3.fromRGB(231, 81, 81)
-                end)
-            end)
+    local function onDetectorAdded(cd)
+        if not cd:IsA("ClickDetector") then return end
+        cd.MouseClick:Connect(function(who) 
+            if who == player and canStart then startGame() end 
         end)
     end
+    local existing = startButton:FindFirstChildOfClass("ClickDetector")
+    if existing then onDetectorAdded(existing) end
+    startButton.ChildAdded:Connect(onDetectorAdded)
 
-    -- -------------------------------------------------------
-    -- Start button
-    -- -------------------------------------------------------
-    local function connectClick(cd)
-        if not cd then return end
-
-        cd.MouseClick:Connect(function(clickingPlayer)
-            if clickingPlayer ~= player then return end
-            if cooldown or gameActive then return end
-
-            cooldown = true
-            startButton.Color = Color3.fromRGB(100, 0, 0)
-            startGame()
-        end)
-    end
-
-    -- Check if it already exists
-    local clickDetector = startButton:FindFirstChildOfClass("ClickDetector")
-
-    if clickDetector then
-        print("ClickDetector already exists")
-        connectClick(clickDetector)
-    else
-        print("Waiting for ClickDetector to be added...")
-    end
-
-    -- Listen for it being added later
-    startButton.ChildAdded:Connect(function(child)
-        if child:IsA("ClickDetector") then
-            print("ClickDetector added!")
-            connectClick(child)
-        end
+    UserInputService.InputBegan:Connect(function(io, proc)
+        if proc then return end
+        if io.KeyCode == Enum.KeyCode.Q then tryHit("Q")
+        elseif io.KeyCode == Enum.KeyCode.E then tryHit("E") end
     end)
-
-    -- -------------------------------------------------------
-    -- Keyboard input
-    -- -------------------------------------------------------
-    UserInputService.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.KeyCode == Enum.KeyCode.E then tryHit("E") end
-        if input.KeyCode == Enum.KeyCode.Q then tryHit("Q") end
-    end)
-
-    -- -------------------------------------------------------
-    -- Mobile buttons
-    -- -------------------------------------------------------
-    if isMobile and btnE and btnQ then
-        btnE.MouseButton1Down:Connect(function() tryHit("E") end)
-        btnQ.MouseButton1Down:Connect(function() tryHit("Q") end)
-    end
+    btnQ.MouseButton1Down:Connect(function() tryHit("Q") end)
+    btnE.MouseButton1Down:Connect(function() tryHit("E") end)
 end)

@@ -32,13 +32,13 @@ local CoinGiver = workspace:WaitForChild("CoinGiver")
 
 -- end
 function LevelManager.GetRandomLevel(rarity)
-    local forcedLevel = LevelsFolder:FindFirstChild("Level19", true)
+    local forcedLevel = LevelsFolder:FindFirstChild("Level20", true)
 
     if forcedLevel then
-        print("FORCING Level19 spawn")
+        print("FORCING Level20 spawn")
         return forcedLevel
     else
-        warn("Level19 not found anywhere in LevelsFolder")
+        warn("Level20 not found anywhere in LevelsFolder")
         return nil
     end
 end

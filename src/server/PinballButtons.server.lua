@@ -1,12 +1,9 @@
+local workspace = game:GetService("Workspace")
 local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
 
-local function setupLevel(level)
-
-    if level.Name ~= "Level17" then
-        return
-    end
-
-    print("Level17 detected, setting up buttons")
+SpawnedLevels.ChildAdded:Connect(function(level)
+    if level.Name ~= "Level17" then return end
+        print("Level17 detected, setting up buttons")
 
     local button1 = level:WaitForChild("ballpart1")
     local button2 = level:WaitForChild("button2ball")
@@ -71,13 +68,4 @@ local function setupLevel(level)
 
         end
     end)
-
-end
-
--- Run for future spawned levels
-SpawnedLevels.ChildAdded:Connect(setupLevel)
-
--- Also run for levels that already exist
-for _, level in ipairs(SpawnedLevels:GetChildren()) do
-    setupLevel(level)
-end
+end)

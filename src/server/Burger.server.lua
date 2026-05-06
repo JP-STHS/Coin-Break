@@ -7,6 +7,11 @@ local Players = game:GetService("Players")
 local workspace = game:GetService("Workspace")
 local ServerStorage = game:GetService("ServerStorage")
 local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
+-- get audio from toolbox
+local audio = Instance.new("Sound")
+audio.SoundId = "rbxassetid://17208396156"
+audio.Volume = 0.5
+audio.Parent = ReplicatedStorage
 
 SpawnedLevels.ChildAdded:Connect(function(level)
     if level.Name ~= "Level19" then return end
@@ -51,9 +56,9 @@ SpawnedLevels.ChildAdded:Connect(function(level)
         if c.bun then return end  -- already collected
         c.bun = true
         print(player.Name .. " picked up bun")
-        local bunprox = bun:WaitForChild("ProximityPrompt")
-        bunprox.Enabled = false
         checkAllCollected(player)
+        audio:Play()  -- Play sound when bun is collected
+        bun:WaitForChild("ProximityPrompt"):Destroy()
     end)
 
     patty:WaitForChild("ProximityPrompt").Triggered:Connect(function(player)
@@ -61,9 +66,9 @@ SpawnedLevels.ChildAdded:Connect(function(level)
         if c.patty then return end
         c.patty = true
         print(player.Name .. " picked up patty")
-        local pattyprox = patty:WaitForChild("ProximityPrompt")
-        pattyprox.Enabled = false
         checkAllCollected(player)
+        audio:Play()  -- Play sound when patty is collected
+        patty:WaitForChild("ProximityPrompt"):Destroy()
     end)
 
     lettuce:WaitForChild("ProximityPrompt").Triggered:Connect(function(player)
@@ -71,8 +76,8 @@ SpawnedLevels.ChildAdded:Connect(function(level)
         if c.lettuce then return end
         c.lettuce = true
         print(player.Name .. " picked up lettuce")
-        local lettuceprox = lettuce:WaitForChild("ProximityPrompt")
-        lettuceprox.Enabled = false
         checkAllCollected(player)
+        audio:Play()  -- Play sound when lettuce is collected
+        lettuce:WaitForChild("ProximityPrompt"):Destroy()
     end)
 end)

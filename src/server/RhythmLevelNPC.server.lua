@@ -1,19 +1,20 @@
-local Workspace = game:GetService("Workspace")
-local ServerStorage = game:GetService("ServerStorage")
-local LevelsFolder = ServerStorage:WaitForChild("Levels")
-local EpicCategory = LevelsFolder:WaitForChild("Epic")
-local Level19 = EpicCategory:WaitForChild("Level19")
+local workspace = game:GetService("Workspace")
+local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
 
-local npc = Level19:WaitForChild("Ghost")
-local TweenService = game:GetService("TweenService")
-local mesh = npc:WaitForChild("GhostModel")
+SpawnedLevels.ChildAdded:Connect(function(level)
+    if level.Name ~= "Level19" then return end
 
-local startY = mesh.Position.Y
-local hoverHeight = 1.5  -- how many studs it bobs up and down
+    local npc = level:WaitForChild("Ghost")
+    local TweenService = game:GetService("TweenService")
+    local mesh = npc:WaitForChild("GhostModel")
 
-local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+    local startY = mesh.Position.Y
+    local hoverHeight = 1.5  -- how many studs it bobs up and down
 
-local tween = TweenService:Create(mesh, tweenInfo, {
-    Position = Vector3.new(mesh.Position.X, startY + hoverHeight, mesh.Position.Z)
-})
-tween:Play()
+    local tweenInfo = TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+
+    local tween = TweenService:Create(mesh, tweenInfo, {
+        Position = Vector3.new(mesh.Position.X, startY + hoverHeight, mesh.Position.Z)
+    })
+    tween:Play()
+end)

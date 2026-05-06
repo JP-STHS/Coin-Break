@@ -1,12 +1,8 @@
+local workspace = game:GetService("Workspace")
 local SpawnedLevels = workspace:WaitForChild("SpawnedLevels")
 
-local function setupLevel(level)
-
-    if level.Name ~= "Level17" then
-        return
-    end
-
-
+SpawnedLevels.ChildAdded:Connect(function(level)
+    if level.Name ~= "Level17" then return end
 	local flipper = level:WaitForChild("flippercore1")
 	local flipper2 = level:WaitForChild("flippercore2")
 	local hinge = flipper:WaitForChild("HingeConstraint")
@@ -22,11 +18,4 @@ local function setupLevel(level)
 		hinge2.TargetAngle = 0
 		task.wait(1)
 	end
-end
--- Run for future spawned levels
-SpawnedLevels.ChildAdded:Connect(setupLevel)
-
--- Also run for levels that already exist
-for _, level in ipairs(SpawnedLevels:GetChildren()) do
-    setupLevel(level)
-end
+end)
