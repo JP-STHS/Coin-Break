@@ -445,10 +445,13 @@ ProximityPrompt.Triggered:Connect(function(player)
 		print("Weight:", selectedWeight)
 		print("Rarity:", rarity)
 		local displayLocation = petLocations[selectedPet.Name]
-		
+		local coinSound = Instance.new("Sound")
+		coinSound.SoundId = "rbxassetid://127645268874265"
+		coinSound.Volume = 1
+		coinSound.Parent = ProximityPrompt
 -- save before cutscene
 		anim.Stopped:Connect(function()
-
+			coinSound:Play()
 			humanoid.WalkSpeed = prevWalkSpeed
 			humanoid.JumpHeight = prevJumpHeight
 			camera.CameraType = prevCameraType
@@ -527,17 +530,22 @@ ProximityPrompt.Triggered:Connect(function(player)
 			-- mysterybox.CFrame = og_mystboxloc
 			-- mysterybox.Transparency = 0
 			-- 🎬 Fade box out smoothly
-			local fadeOut = TweenService:Create(
-				boxPart,
-				TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-				{Transparency = 1}
-			)
+			-- local fadeOut = TweenService:Create(
+			-- 	boxPart,
+			-- 	TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			-- 	{Transparency = 1}
+			-- )
+			local sound = Instance.new("Sound")
+			sound.SoundId = "rbxassetid://80903539228968"
+			sound.Volume = 1
+			sound.Parent = boxPart
 
 			-- ✨ CLONE PET FOR REVEAL
 			local revealPet = selectedPet:Clone()
 			revealPet.Parent = workspace
 
 			-- Spawn the pet above the box immediately
+			sound:Play()
 			confetti:Emit(200)
 			popOutPet(revealPet, boxPart.CFrame, displayLocation)
 			playPetAnimation(revealPet)			-- 🎬 Fade box out smoothly (decals included)
